@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlgojoGacor — Casino & Games</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+<style>
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0;overflow-x:auto}
+.tab{padding:10px 20px;cursor:pointer;border-radius:8px 8px 0 0;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.tab.active{color:var(--accent-yellow,#f39c12);border-bottom-color:var(--accent-yellow,#f39c12);background:rgba(243,156,18,.08)}
+/* Casino */
+.casino-hero{background:linear-gradient(135deg,#1a0533,#0d1b2a,#1a1033);border:1px solid rgba(243,156,18,.3);border-radius:20px;padding:32px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
+.casino-hero::before{content:'♠♥♣♦';font-size:100px;opacity:.03;position:absolute;top:-10px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.casino-title{font-size:28px;font-weight:800;color:#f39c12;text-shadow:0 0 20px rgba(243,156,18,.5)}
+.bet-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.bet-btn{padding:6px 16px;border-radius:20px;border:1px solid rgba(243,156,18,.4);background:rgba(243,156,18,.1);color:#f39c12;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.bet-btn:hover{background:rgba(243,156,18,.25)}
+.big-bet-input{background:rgba(0,0,0,.3);border:2px solid rgba(243,156,18,.4);border-radius:12px;color:#fff;font-size:18px;font-weight:700;padding:10px 16px;text-align:center;width:200px}
+/* Roulette */
+.roulette-wheel{width:200px;height:200px;border-radius:50%;background:conic-gradient(
+  #27ae60 0deg 10deg,
+  #e74c3c 10deg 30deg, #1a1a1a 30deg 50deg,
+  #e74c3c 50deg 70deg, #1a1a1a 70deg 90deg,
+  #e74c3c 90deg 110deg, #1a1a1a 110deg 130deg,
+  #e74c3c 130deg 150deg, #1a1a1a 150deg 170deg,
+  #e74c3c 170deg 190deg, #1a1a1a 190deg 210deg,
+  #e74c3c 210deg 230deg, #1a1a1a 230deg 250deg,
+  #e74c3c 250deg 270deg, #1a1a1a 270deg 290deg,
+  #e74c3c 290deg 310deg, #1a1a1a 310deg 330deg,
+  #e74c3c 330deg 350deg, #1a1a1a 350deg 360deg
+);margin:20px auto;border:4px solid #f39c12;box-shadow:0 0 30px rgba(243,156,18,.4);transition:transform 3s cubic-bezier(.17,.67,.12,1);cursor:pointer}
+.roulette-wheel.spinning{transform:rotate(2160deg)}
+.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.choice-btn{padding:12px;text-align:center;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;border:2px solid transparent;transition:all .2s}
+.choice-btn.red{background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.3);color:#e74c3c}
+.choice-btn.black{background:rgba(26,26,26,.8);border-color:rgba(255,255,255,.1);color:#ccc}
+.choice-btn.green{background:rgba(39,174,96,.15);border-color:rgba(39,174,96,.3);color:#27ae60}
+.choice-btn:hover,.choice-btn.selected{transform:scale(1.03);border-color:currentColor;box-shadow:0 0 12px currentColor}
+/* Slot */
+.slot-machine{background:linear-gradient(180deg,#1a0533,#0d1a33);border:3px solid #f39c12;border-radius:20px;padding:30px;text-align:center;max-width:400px;margin:0 auto}
+.slot-reels{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.slot-reel{width:90px;height:90px;background:#000;border-radius:12px;border:2px solid rgba(243,156,18,.5);display:flex;align-items:center;justify-content:center;font-size:44px;overflow:hidden;position:relative}
+.slot-reel.spinning{animation:slotSpin .1s linear infinite}
+@keyframes slotSpin{0%{transform:translateY(0)}25%{transform:translateY(-10px)}75%{transform:translateY(10px)}100%{transform:translateY(0)}}
+.slot-lever{font-size:50px;cursor:pointer;transition:transform .2s;display:inline-block;margin-top:8px}
+.slot-lever:hover{transform:scale(1.1)}
+.slot-lever:active{transform:scale(.95) rotate(-15deg)}
+/* Coinflip */
+.coin{width:120px;height:120px;border-radius:50%;margin:20px auto;display:flex;align-items:center;justify-content:center;font-size:60px;border:3px solid #f39c12;background:radial-gradient(circle,#d4af37,#8b6914);box-shadow:0 0 20px rgba(243,156,18,.3);transition:transform .5s;cursor:pointer}
+.coin.flip{animation:coinFlip 1.5s ease-in-out}
+@keyframes coinFlip{0%{transform:rotateY(0)}50%{transform:rotateY(900deg)}100%{transform:rotateY(1800deg)}}
+/* History */
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
+.history-item.won{background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2)}
+.history-item.lost{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.2)}
+.result-display{min-height:60px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;padding:16px;border-radius:12px;margin-top:12px;border:2px solid var(--border);transition:all .3s}
+.result-display.win{background:rgba(39,174,96,.1);border-color:var(--accent-green);color:var(--accent-green)}
+.result-display.lose{background:rgba(231,76,60,.1);border-color:#e74c3c;color:#e74c3c}
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div><div class="logo-sub">Web Platform</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Utama</div>
+    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/pages/profile.html"><span class="nav-icon">👤</span> Profil & Status</a>
+    <a class="nav-item" href="/chat.html"><span class="nav-icon">💬</span> Live Chat</a>
+    <div class="nav-section">Kehidupan & Ekonomi</div>
+    <a class="nav-item" href="/pages/economy.html"><span class="nav-icon">💰</span> Ekonomi & Bank</a>
+    <a class="nav-item" href="/pages/jobs.html"><span class="nav-icon">💼</span> Pekerjaan</a>
+    <a class="nav-item" href="/pages/life.html"><span class="nav-icon">❤️</span> Survival</a>
+    <div class="nav-section">Games</div>
+    <a class="nav-item active" href="/pages/games.html"><span class="nav-icon">🎮</span> Casino & Games</a>
+    <a class="nav-item" href="/pages/minigames.html"><span class="nav-icon">🎲</span> Mini Games</a>
+    <div class="nav-section">Bisnis</div>
+    <a class="nav-item" href="/pages/farming.html"><span class="nav-icon">🌾</span> Farming</a>
+    <a class="nav-item" href="/pages/ternak.html"><span class="nav-icon">🐄</span> Peternakan</a>
+    <a class="nav-item" href="/pages/mining.html"><span class="nav-icon">⛏️</span> Mining</a>
+    <a class="nav-item" href="/pages/property.html"><span class="nav-icon">🏢</span> Properti</a>
+    <div class="nav-section">AI & Tools</div>
+    <a class="nav-item" href="/pages/ai.html"><span class="nav-icon">🤖</span> AI Chat</a>
+    <a class="nav-item" href="/pages/tools.html"><span class="nav-icon">🛠️</span> Tools & Utilitas</a>
+    <a class="nav-item" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <div class="nav-section admin-only hidden">Admin</div>
+    <a class="nav-item admin-only hidden" href="/pages/admin.html"><span class="nav-icon">⚙️</span> Panel Admin</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-username">Loading...</div><div class="user-role" id="sidebar-role">—</div></div></div>
+    <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="main-content">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title">🎰 Casino & Games</span>
+  </div>
+  <div style="font-size:13px;color:var(--text-secondary)">Saldo: <span id="top-balance" style="font-weight:700;color:var(--accent-green)">...</span></div>
+</header>
+
+<main class="content-area">
+  <!-- Stats -->
+  <div class="status-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-value" id="stat-wins" style="color:var(--accent-green)">0</div><div class="stat-label">🏆 Total Menang</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-losses" style="color:#e74c3c">0</div><div class="stat-label">💀 Total Kalah</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-won">Rp0</div><div class="stat-label">💵 Total Untung</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-balance">...</div><div class="stat-label">💰 Saldo</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('casino')">🃏 Casino</div>
+    <div class="tab" onclick="switchTab('roulette')">🎡 Roulette</div>
+    <div class="tab" onclick="switchTab('slot')">🎰 Slot Machine</div>
+    <div class="tab" onclick="switchTab('coinflip')">🪙 Coin Flip</div>
+    <div class="tab" onclick="switchTab('history')">📋 Riwayat</div>
+  </div>
+
+  <!-- ── CASINO ── -->
+  <div id="tab-casino">
+    <div class="casino-hero">
+      <div class="casino-title">🃏 CASINO ROYALE</div>
+      <div style="color:rgba(255,255,255,.6);font-size:13px;margin:4px 0">Win Rate 35% | Menang = 2x Bet</div>
+      <div style="font-size:40px;margin:16px 0" id="casino-card">🂡</div>
+      <input type="text" class="big-bet-input" id="casino-bet" placeholder="Masukkan bet..." value="10000">
+      <div class="bet-row">
+        <span class="bet-btn" onclick="setBet('casino',10000)">10K</span>
+        <span class="bet-btn" onclick="setBet('casino',100000)">100K</span>
+        <span class="bet-btn" onclick="setBet('casino',1000000)">1JT</span>
+        <span class="bet-btn" onclick="setBet('casino',10000000)">10JT</span>
+        <span class="bet-btn" onclick="setBet('casino','all')">ALL IN</span>
+      </div>
+      <button class="btn btn-primary" id="btn-casino" onclick="playCasino()" style="font-size:16px;padding:14px 40px;background:#f39c12;border:none;color:#000">
+        🃏 DEAL
+      </button>
+      <div class="result-display" id="casino-result" style="margin-top:16px">Tekan DEAL untuk mulai!</div>
+    </div>
+  </div>
+
+  <!-- ── ROULETTE ── -->
+  <div id="tab-roulette" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">🎡</span><h3>Roulette Kasino</h3></div>
+      <div style="text-align:center">
+        <div class="roulette-wheel" id="roulette-wheel" onclick="spinWheel()">🎡</div>
+        <div style="font-size:24px;font-weight:800;margin:8px 0" id="roulette-result-num">?</div>
+        <h4 style="margin-bottom:10px">Pilih Taruhan:</h4>
+        <div class="choice-grid">
+          <div class="choice-btn red" onclick="selectChoice(this,'merah')">🔴 Merah<br><small>2x</small></div>
+          <div class="choice-btn black" onclick="selectChoice(this,'hitam')">⚫ Hitam<br><small>2x</small></div>
+          <div class="choice-btn green" onclick="selectChoice(this,'ganjil')">🔢 Ganjil<br><small>2x</small></div>
+          <div class="choice-btn green" onclick="selectChoice(this,'genap')">🔢 Genap<br><small>2x</small></div>
+          <div class="choice-btn" style="background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.3);color:#f39c12;grid-column:1/-1" onclick="promptAngka()">🔢 Tebak Angka (0-36) → 15x!</div>
+        </div>
+        <div id="selected-choice" style="margin:10px 0;font-size:13px;color:var(--text-secondary)">Belum pilih taruhan</div>
+        <input type="text" class="big-bet-input" id="roulette-bet" placeholder="Jumlah bet..." value="10000">
+        <div class="bet-row">
+          <span class="bet-btn" onclick="setBet('roulette',10000)">10K</span>
+          <span class="bet-btn" onclick="setBet('roulette',100000)">100K</span>
+          <span class="bet-btn" onclick="setBet('roulette',1000000)">1JT</span>
+          <span class="bet-btn" onclick="setBet('roulette','all')">ALL IN</span>
+        </div>
+        <button class="btn btn-primary" id="btn-roulette" onclick="playRoulette()" style="background:#e74c3c;border:none;font-size:15px;padding:12px 36px">
+          🎡 PUTAR RODA
+        </button>
+        <div class="result-display" id="roulette-result" style="margin-top:16px">Pilih taruhan dan putar roda!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLOT ── -->
+  <div id="tab-slot" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">🎰</span><h3>Slot Machine</h3></div>
+      <div class="slot-machine">
+        <div style="color:#f39c12;font-size:13px">⚡ JACKPOT MODE</div>
+        <div class="slot-reels">
+          <div class="slot-reel" id="reel-1">🍒</div>
+          <div class="slot-reel" id="reel-2">🍋</div>
+          <div class="slot-reel" id="reel-3">🍊</div>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px">3 sama = MENANG!</div>
+        <input type="text" class="big-bet-input" id="slot-bet" placeholder="Jumlah bet..." value="10000">
+        <div class="bet-row">
+          <span class="bet-btn" onclick="setBet('slot',10000)">10K</span>
+          <span class="bet-btn" onclick="setBet('slot',100000)">100K</span>
+          <span class="bet-btn" onclick="setBet('slot',1000000)">1JT</span>
+          <span class="bet-btn" onclick="setBet('slot','all')">ALL IN</span>
+        </div>
+        <div id="slot-lever-el" class="slot-lever" onclick="playSlot()">🎰</div>
+        <div class="result-display" id="slot-result" style="margin-top:8px">Tarik tuas untuk putar!</div>
+        <div style="margin-top:16px;font-size:11px;color:rgba(255,255,255,.4)">
+          💎💎💎 = 50x | 7️⃣7️⃣7️⃣ = 30x | BAR = 15x | 🎰🎰🎰 = 10x | 🍒🍒🍒 = 5x
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COINFLIP ── -->
+  <div id="tab-coinflip" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">🪙</span><h3>Coin Flip</h3></div>
+      <div style="text-align:center">
+        <div class="coin" id="coin-el" onclick="flipCoin()">🪙</div>
+        <h4 style="margin-bottom:12px">Pilih Sisi:</h4>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+          <div class="choice-btn" id="choice-heads" style="background:rgba(243,156,18,.1);border:2px solid rgba(243,156,18,.3);color:#f39c12;padding:16px 30px" onclick="selectCoin('heads')">
+            👑 HEADS
+          </div>
+          <div class="choice-btn" id="choice-tails" style="background:rgba(52,152,219,.1);border:2px solid rgba(52,152,219,.3);color:#3498db;padding:16px 30px" onclick="selectCoin('tails')">
+            🐉 TAILS
+          </div>
+        </div>
+        <div id="coin-choice" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Belum pilih</div>
+        <input type="text" class="big-bet-input" id="coinflip-bet" placeholder="Jumlah bet..." value="10000">
+        <div class="bet-row">
+          <span class="bet-btn" onclick="setBet('coinflip',10000)">10K</span>
+          <span class="bet-btn" onclick="setBet('coinflip',100000)">100K</span>
+          <span class="bet-btn" onclick="setBet('coinflip',1000000)">1JT</span>
+          <span class="bet-btn" onclick="setBet('coinflip','all')">ALL IN</span>
+        </div>
+        <button class="btn btn-primary" id="btn-coinflip" onclick="playCoinflip()" style="background:#3498db;border:none;font-size:15px;padding:12px 36px;margin-top:8px">
+          🪙 FLIP!
+        </button>
+        <div class="result-display" id="coinflip-result" style="margin-top:16px">Pilih sisi dan flip!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div id="tab-history" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">📋</span><h3>Riwayat Permainan</h3></div>
+      <div id="history-list"><div class="alert alert-info">Belum ada riwayat. Mulai bermain!</div></div>
+    </div>
+  </div>
+</main>
+</div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script>
+const fmt = n => Math.floor(n).toLocaleString('id-ID');
+let balance = 0;
+let selectedChoice = null;
+let selectedCoin = null;
+const history = [];
+
+const CARDS = ['🂡','🂢','🂣','🂤','🂥','🂦','🂧','🂨','🂩','🂪','🂫','🂭','🂮','🂱','🂲','🂳','🂴','🂵','🂶','🂷','🂸','🂹','🂺','🂻','🂽','🂾'];
+
+async function load(){
+  try{
+    const r=await api.get('/features/games');
+    if(!r||r.success===false){ document.getElementById('top-balance').textContent='Rp0'; return; }
+    balance=r.balance||0;
+    document.getElementById('top-balance').textContent='Rp'+fmt(balance);
+    document.getElementById('stat-balance').textContent='Rp'+fmt(balance);
+    const s=r.gamesStats||{};
+    document.getElementById('stat-wins').textContent=(s.wins||0).toLocaleString('id-ID');
+    document.getElementById('stat-losses').textContent=(s.losses||0).toLocaleString('id-ID');
+    document.getElementById('stat-won').textContent='Rp'+fmt(s.totalWon||0);
+  }catch(e){}
+}
+
+function setBet(game, val){
+  const el=document.getElementById(`${game}-bet`);
+  if(val==='all') el.value='all';
+  else el.value=val;
+}
+
+// CASINO
+async function playCasino(){
+  const btn=document.getElementById('btn-casino');
+  const rawBet=document.getElementById('casino-bet').value;
+  btn.disabled=true; btn.textContent='🃏 Dealing...';
+  document.getElementById('casino-card').textContent=CARDS[Math.floor(Math.random()*CARDS.length)];
+  try{
+    const r=await api.post('/features/games/casino',{bet:rawBet});
+    if(!r||r.success===false){ showToast('error',r?.message||'Error'); return; }
+    balance=r.balance;
+    document.getElementById('top-balance').textContent='Rp'+fmt(balance);
+    document.getElementById('stat-balance').textContent='Rp'+fmt(balance);
+    const rd=document.getElementById('casino-result');
+    rd.textContent=r.message;
+    rd.className='result-display '+(r.won?'win':'lose');
+    addHistory('Casino',r.won,r.amount);
+    load();
+  }catch(e){ showToast('error',e.message||'Error'); }
+  finally{ btn.disabled=false; btn.textContent='🃏 DEAL'; }
+}
+
+// ROULETTE
+function selectChoice(el,val){
+  document.querySelectorAll('.choice-grid .choice-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedChoice=val;
+  document.getElementById('selected-choice').textContent='Pilihan: '+val.toUpperCase();
+}
+function promptAngka(){
+  const n=prompt('Masukkan angka (0-36):');
+  if(n===null) return;
+  const num=parseInt(n);
+  if(isNaN(num)||num<0||num>36){ alert('Angka harus 0-36'); return; }
+  document.querySelectorAll('.choice-grid .choice-btn').forEach(b=>b.classList.remove('selected'));
+  selectedChoice=String(num);
+  document.getElementById('selected-choice').textContent=`Pilihan: Angka ${num} (x15 jika benar)`;
+}
+async function playRoulette(){
+  if(!selectedChoice){ showToast('error','Pilih taruhan dulu!'); return; }
+  const btn=document.getElementById('btn-roulette');
+  btn.disabled=true; btn.textContent='🎡 Berputar...';
+  const wheel=document.getElementById('roulette-wheel');
+  wheel.classList.add('spinning');
+  try{
+    const r=await api.post('/features/games/roulette',{bet:document.getElementById('roulette-bet').value,choice:selectedChoice});
+    if(!r||r.success===false){ wheel.classList.remove('spinning'); showToast('error',r?.message||'Error'); btn.disabled=false; btn.textContent='🎡 PUTAR RODA'; return; }
+    setTimeout(()=>{
+      wheel.classList.remove('spinning');
+      const colorEmoji={red:'🔴',black:'⚫',green:'🟢'}[r.resultColor]||'⚪';
+      document.getElementById('roulette-result-num').textContent=`${colorEmoji} ${r.resultNum}`;
+      balance=r.balance;
+      document.getElementById('top-balance').textContent='Rp'+fmt(balance);
+      document.getElementById('stat-balance').textContent='Rp'+fmt(balance);
+      const rd=document.getElementById('roulette-result');
+      rd.textContent=r.message;
+      rd.className='result-display '+(r.won?'win':'lose');
+      addHistory('Roulette',r.won,r.amount);
+      load();
+      btn.disabled=false; btn.textContent='🎡 PUTAR RODA';
+    },3100);
+  }catch(e){ 
+    wheel.classList.remove('spinning');
+    showToast('error',e.message||'Error');
+    btn.disabled=false; btn.textContent='🎡 PUTAR RODA';
+  }
+}
+
+// SLOT
+const REELS_SYMBOLS=['🍒','🍋','🍊','🍇','💎','7️⃣','🎰'];
+let slotSpinning=false;
+function spinWheel(){}
+async function playSlot(){
+  if(slotSpinning) return;
+  slotSpinning=true;
+  const lever=document.getElementById('slot-lever-el');
+  lever.style.transform='rotate(-30deg)';
+  [1,2,3].forEach(i=>document.getElementById(`reel-${i}`).classList.add('spinning'));
+  try{
+    const r=await api.post('/features/games/slot',{bet:document.getElementById('slot-bet').value});
+    if(!r||r.success===false){ lever.style.transform=''; [1,2,3].forEach(i=>document.getElementById(`reel-${i}`).classList.remove('spinning')); showToast('error',r?.message||'Error'); slotSpinning=false; return; }
+    setTimeout(()=>{
+      [1,2,3].forEach((i,idx)=>{
+        const el=document.getElementById(`reel-${i}`);
+        el.classList.remove('spinning');
+        el.textContent=r.reels[idx];
+      });
+      lever.style.transform='';
+      balance=r.balance;
+      document.getElementById('top-balance').textContent='Rp'+fmt(balance);
+      document.getElementById('stat-balance').textContent='Rp'+fmt(balance);
+      const rd=document.getElementById('slot-result');
+      rd.textContent=r.message;
+      rd.className='result-display '+(r.won?'win':'lose');
+      if(r.won) showToast('success','🎰 JACKPOT! '+r.message);
+      addHistory('Slot',r.won,r.amount);
+      load();
+      slotSpinning=false;
+    },800);
+  }catch(e){
+    lever.style.transform='';
+    [1,2,3].forEach(i=>document.getElementById(`reel-${i}`).classList.remove('spinning'));
+    showToast('error',e.message||'Error');
+    slotSpinning=false;
+  }
+}
+
+// COINFLIP
+function selectCoin(side){
+  selectedCoin=side;
+  document.getElementById('choice-heads').style.boxShadow=side==='heads'?'0 0 15px #f39c12':'none';
+  document.getElementById('choice-tails').style.boxShadow=side==='tails'?'0 0 15px #3498db':'none';
+  document.getElementById('coin-choice').textContent='Pilihan: '+(side==='heads'?'👑 HEADS':'🐉 TAILS');
+}
+function flipCoin(){
+  if(!selectedCoin){ showToast('error','Pilih sisi dulu!'); return; }
+}
+async function playCoinflip(){
+  if(!selectedCoin){ showToast('error','Pilih sisi dulu!'); return; }
+  const btn=document.getElementById('btn-coinflip');
+  btn.disabled=true; btn.textContent='🪙 Flipping...';
+  const coin=document.getElementById('coin-el');
+  coin.classList.add('flip');
+  try{
+    const r=await api.post('/features/games/coinflip',{bet:document.getElementById('coinflip-bet').value,choice:selectedCoin});
+    if(!r||r.success===false){ coin.classList.remove('flip'); showToast('error',r?.message||'Error'); btn.disabled=false; btn.textContent='🪙 FLIP!'; return; }
+    setTimeout(()=>{
+      coin.classList.remove('flip');
+      coin.textContent=r.result==='heads'?'👑':'🐉';
+      balance=r.balance;
+      document.getElementById('top-balance').textContent='Rp'+fmt(balance);
+      document.getElementById('stat-balance').textContent='Rp'+fmt(balance);
+      const rd=document.getElementById('coinflip-result');
+      rd.textContent=r.message;
+      rd.className='result-display '+(r.won?'win':'lose');
+      addHistory('Coinflip',r.won,r.amount);
+      load();
+      btn.disabled=false; btn.textContent='🪙 FLIP!';
+    },1600);
+  }catch(e){
+    coin.classList.remove('flip');
+    showToast('error',e.message||'Error');
+    btn.disabled=false; btn.textContent='🪙 FLIP!';
+  }
+}
+
+// HISTORY
+function addHistory(game,won,amount){
+  history.unshift({game,won,amount,ts:Date.now()});
+  if(history.length>50) history.pop();
+  renderHistory();
+}
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!history.length){ el.innerHTML='<div class="alert alert-info">Belum ada riwayat.</div>'; return; }
+  el.innerHTML=history.slice(0,20).map(h=>`
+    <div class="history-item ${h.won?'won':'lost'}">
+      <div>
+        <span style="font-weight:700">${h.game}</span>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-secondary)">${new Date(h.ts).toLocaleTimeString('id-ID')}</span>
+      </div>
+      <span style="font-weight:700;color:${h.won?'var(--accent-green)':'#e74c3c'}">${h.won?'+':'-'}Rp${fmt(h.amount)}</span>
+    </div>`).join('');
+}
+
+function switchTab(tab){
+  ['casino','roulette','slot','coinflip','history'].forEach(t=>{ document.getElementById(`tab-${t}`).classList.toggle('hidden',t!==tab); });
+  document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.toggle('active',['casino','roulette','slot','coinflip','history'][i]===tab); });
+}
+
+const ME=getUser();
+if(ME){
+  document.getElementById('sidebar-username').textContent=ME.username;
+  document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();
+  document.getElementById('sidebar-role').textContent=ME.role||'user';
+  if(ME.role==='admin'||ME.role==='developer') document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('hidden'));
+}
+load();
+</script>
+</body>
+</html>

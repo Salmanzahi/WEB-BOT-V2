@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlgojoGacor — Mini Games</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+<style>
+.game-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.game-select-card{background:var(--card-bg);border:2px solid var(--border);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
+.game-select-card:hover,.game-select-card.active{border-color:var(--accent-purple);background:rgba(155,89,182,.08);transform:translateY(-2px)}
+.game-select-card .game-icon{font-size:48px;margin-bottom:8px}
+.game-select-card .game-name{font-weight:700;font-size:14px}
+.game-select-card .game-desc{font-size:11px;color:var(--text-secondary);margin-top:4px}
+/* DADU */
+.dice-area{display:flex;gap:20px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+.dice{width:90px;height:90px;background:linear-gradient(135deg,#2c3e50,#34495e);border-radius:14px;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 4px 15px rgba(0,0,0,.3);transition:transform .1s;cursor:pointer}
+.dice.rolling{animation:diceRoll .5s linear infinite}
+@keyframes diceRoll{0%{transform:rotate(0)}25%{transform:rotate(15deg)}75%{transform:rotate(-15deg)}100%{transform:rotate(0)}}
+/* NUMBER GUESS */
+.guess-display{font-size:80px;text-align:center;margin:10px 0}
+.number-hint{text-align:center;font-size:18px;font-weight:700;margin:10px 0;min-height:30px}
+.guess-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.guess-btn{width:50px;height:50px;border-radius:10px;border:2px solid var(--border);background:var(--hover-bg);font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;color:var(--text-primary)}
+.guess-btn:hover:not(:disabled){border-color:var(--accent-purple);background:rgba(155,89,182,.15)}
+.guess-btn.correct{background:rgba(39,174,96,.3);border-color:#27ae60;color:#27ae60}
+.guess-btn.wrong{background:rgba(231,76,60,.3);border-color:#e74c3c;color:#e74c3c}
+/* MEMORY */
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:16px auto}
+.memory-card{height:70px;border-radius:10px;border:2px solid var(--border);background:var(--hover-bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px;transition:all .3s;perspective:500px;position:relative}
+.memory-card.flipped,.memory-card.matched{background:var(--card-bg);border-color:var(--accent-purple)}
+.memory-card.matched{border-color:var(--accent-green);background:rgba(39,174,96,.1);cursor:default}
+.memory-back{font-size:24px;position:absolute}
+.memory-front{opacity:0;position:absolute;transition:opacity .2s}
+.memory-card.flipped .memory-front,.memory-card.matched .memory-front{opacity:1}
+.memory-card.flipped .memory-back,.memory-card.matched .memory-back{opacity:0}
+/* MATH QUIZ */
+.math-display{font-size:48px;font-weight:800;text-align:center;margin:16px 0;color:var(--accent-purple)}
+.math-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.math-opt{padding:16px;border-radius:12px;border:2px solid var(--border);background:var(--hover-bg);font-size:20px;font-weight:700;text-align:center;cursor:pointer;transition:all .2s}
+.math-opt:hover:not(.disabled){border-color:var(--accent-blue);background:rgba(52,152,219,.1)}
+.math-opt.correct{border-color:#27ae60;background:rgba(39,174,96,.2);color:#27ae60}
+.math-opt.wrong{border-color:#e74c3c;background:rgba(231,76,60,.2);color:#e74c3c}
+.math-opt.disabled{cursor:not-allowed;opacity:.7}
+/* General */
+.game-area{display:none}
+.game-area.active{display:block}
+.score-display{text-align:center;font-size:28px;font-weight:800;color:var(--accent-green);margin:8px 0}
+.bet-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.bet-btn{padding:5px 14px;border-radius:20px;border:1px solid rgba(155,89,182,.4);background:rgba(155,89,182,.1);color:var(--accent-purple);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.bet-btn:hover{background:rgba(155,89,182,.25)}
+.bet-input{background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:16px;font-weight:700;padding:8px 14px;text-align:center;width:180px}
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div><div class="logo-sub">Web Platform</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Utama</div>
+    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/pages/profile.html"><span class="nav-icon">👤</span> Profil & Status</a>
+    <a class="nav-item" href="/chat.html"><span class="nav-icon">💬</span> Live Chat</a>
+    <div class="nav-section">Kehidupan & Ekonomi</div>
+    <a class="nav-item" href="/pages/economy.html"><span class="nav-icon">💰</span> Ekonomi & Bank</a>
+    <a class="nav-item" href="/pages/jobs.html"><span class="nav-icon">💼</span> Pekerjaan</a>
+    <a class="nav-item" href="/pages/life.html"><span class="nav-icon">❤️</span> Survival</a>
+    <div class="nav-section">Games</div>
+    <a class="nav-item" href="/pages/games.html"><span class="nav-icon">🎮</span> Casino & Games</a>
+    <a class="nav-item active" href="/pages/minigames.html"><span class="nav-icon">🎲</span> Mini Games</a>
+    <div class="nav-section">Bisnis</div>
+    <a class="nav-item" href="/pages/farming.html"><span class="nav-icon">🌾</span> Farming</a>
+    <a class="nav-item" href="/pages/ternak.html"><span class="nav-icon">🐄</span> Peternakan</a>
+    <a class="nav-item" href="/pages/mining.html"><span class="nav-icon">⛏️</span> Mining</a>
+    <a class="nav-item" href="/pages/property.html"><span class="nav-icon">🏢</span> Properti</a>
+    <div class="nav-section">AI & Tools</div>
+    <a class="nav-item" href="/pages/ai.html"><span class="nav-icon">🤖</span> AI Chat</a>
+    <a class="nav-item" href="/pages/tools.html"><span class="nav-icon">🛠️</span> Tools & Utilitas</a>
+    <a class="nav-item" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <div class="nav-section admin-only hidden">Admin</div>
+    <a class="nav-item admin-only hidden" href="/pages/admin.html"><span class="nav-icon">⚙️</span> Panel Admin</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-username">Loading...</div><div class="user-role" id="sidebar-role">—</div></div></div>
+    <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="main-content">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title">🎲 Mini Games</span>
+  </div>
+  <div style="font-size:13px;color:var(--text-secondary)">Saldo: <span id="top-balance" style="font-weight:700;color:var(--accent-green)">...</span></div>
+</header>
+
+<main class="content-area">
+  <div class="status-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-value" id="stat-session-score" style="color:var(--accent-purple)">0</div><div class="stat-label">🎮 Session Score</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-session-wins">0</div><div class="stat-label">🏆 Menang Hari Ini</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-session-earn">Rp0</div><div class="stat-label">💰 Kemenangan</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-balance">...</div><div class="stat-label">💰 Saldo</div></div>
+  </div>
+
+  <!-- Game Selector -->
+  <div class="game-select-grid">
+    <div class="game-select-card active" id="sel-dadu" onclick="selectGame('dadu')">
+      <div class="game-icon">🎲</div>
+      <div class="game-name">Dadu Taruhan</div>
+      <div class="game-desc">Tebak angka dadu, menang 3x!</div>
+    </div>
+    <div class="game-select-card" id="sel-tebak" onclick="selectGame('tebak')">
+      <div class="game-icon">🔢</div>
+      <div class="game-name">Tebak Angka</div>
+      <div class="game-desc">Cari angka tersembunyi 1-20</div>
+    </div>
+    <div class="game-select-card" id="sel-memory" onclick="selectGame('memory')">
+      <div class="game-icon">🧠</div>
+      <div class="game-name">Memory Card</div>
+      <div class="game-desc">Temukan semua pasangan kartu!</div>
+    </div>
+    <div class="game-select-card" id="sel-math" onclick="selectGame('math')">
+      <div class="game-icon">➕</div>
+      <div class="game-name">Math Quiz</div>
+      <div class="game-desc">Jawab soal math, raih koin!</div>
+    </div>
+    <div class="game-select-card" id="sel-trivia" onclick="selectGame('trivia')">
+      <div class="game-icon">🧠</div>
+      <div class="game-name">Trivia Battle</div>
+      <div class="game-desc">Rebutan jawaban, reward besar!</div>
+    </div>
+    <div class="game-select-card" id="sel-wordle" onclick="selectGame('wordle')">
+      <div class="game-icon">🟩</div>
+      <div class="game-name">Wordle Indonesia</div>
+      <div class="game-desc">Tebak kata 5 huruf (6 kesempatan)</div>
+    </div>
+  </div>
+
+  <!-- ── DADU ── -->
+  <div class="card game-area active" id="game-dadu">
+    <div class="card-header"><span class="icon">🎲</span><h3>Dadu Taruhan</h3><span style="margin-left:auto;font-size:12px;color:var(--text-secondary)">Tebak: menang 3x | Salah: -1x</span></div>
+    <div style="text-align:center">
+      <div class="dice-area">
+        <div class="dice" id="dice1">🎲</div>
+      </div>
+      <div id="dadu-result" style="font-size:18px;font-weight:700;min-height:30px;margin:8px 0"></div>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px">Tebak angka yang akan keluar (1-6). Benar = 3x bet!</p>
+      <div style="margin-bottom:12px;font-weight:700">Pilih angka tebakan:</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+        <div class="guess-btn" id="dadu-sel-1" onclick="selectDadu(1)">1</div>
+        <div class="guess-btn" id="dadu-sel-2" onclick="selectDadu(2)">2</div>
+        <div class="guess-btn" id="dadu-sel-3" onclick="selectDadu(3)">3</div>
+        <div class="guess-btn" id="dadu-sel-4" onclick="selectDadu(4)">4</div>
+        <div class="guess-btn" id="dadu-sel-5" onclick="selectDadu(5)">5</div>
+        <div class="guess-btn" id="dadu-sel-6" onclick="selectDadu(6)">6</div>
+      </div>
+      <input type="text" class="bet-input" id="dadu-bet" placeholder="Jumlah bet..." value="10000">
+      <div class="bet-row">
+        <span class="bet-btn" onclick="document.getElementById('dadu-bet').value=10000">10K</span>
+        <span class="bet-btn" onclick="document.getElementById('dadu-bet').value=100000">100K</span>
+        <span class="bet-btn" onclick="document.getElementById('dadu-bet').value=1000000">1JT</span>
+      </div>
+      <button class="btn btn-primary" id="btn-dadu" onclick="playDadu()" style="background:var(--accent-purple);border:none;padding:12px 36px;font-size:15px">
+        🎲 LEMPAR DADU!
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TEBAK ANGKA ── -->
+  <div class="card game-area" id="game-tebak">
+    <div class="card-header"><span class="icon">🔢</span><h3>Tebak Angka Tersembunyi</h3></div>
+    <div style="text-align:center">
+      <div class="guess-display" id="guess-display">🤔</div>
+      <div class="number-hint" id="number-hint">Tebak angka 1 sampai 20!</div>
+      <div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Sisa tebakan: <span id="guess-attempts" style="font-weight:700;color:var(--accent-green)">5</span> | Reward: <span id="guess-reward" style="color:#f39c12;font-weight:700">Rp500.000</span></div>
+      <div class="guess-row" id="guess-buttons">
+        <!-- Filled by JS -->
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="resetTebak()" style="margin-top:12px">🔄 Game Baru</button>
+    </div>
+  </div>
+
+  <!-- ── MEMORY ── -->
+  <div class="card game-area" id="game-memory">
+    <div class="card-header"><span class="icon">🧠</span><h3>Memory Card</h3>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--text-secondary)">Giliran: <span id="memory-moves" style="font-weight:700">0</span></span>
+        <button class="btn btn-secondary btn-sm" onclick="resetMemory()">🔄 Reset</button>
+      </div>
+    </div>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div id="memory-status" style="text-align:center;margin-top:12px;font-weight:700"></div>
+    <div class="alert alert-info" style="margin-top:12px">🧠 Temukan semua pasangan! Menyelesaikan game memberi Rp500.000.</div>
+  </div>
+
+  <!-- ── MATH QUIZ ── -->
+  <div class="card game-area" id="game-math">
+    <div class="card-header"><span class="icon">➕</span><h3>Math Quiz Challenge</h3>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px">🏆 Streak: <span id="math-streak" style="font-weight:700;color:var(--accent-green)">0</span></span>
+        <span style="font-size:13px">⏱️ <span id="math-timer" style="font-weight:700;color:#f39c12">15</span>s</span>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">Reward per jawaban benar: <span id="math-reward" style="color:var(--accent-green);font-weight:700">Rp100.000</span></div>
+      <div class="math-display" id="math-question">?</div>
+      <div class="math-options" id="math-options"></div>
+      <button class="btn btn-secondary btn-sm" onclick="newMathQuestion()" style="margin-top:10px">⏭️ Skip</button>
+    </div>
+  </div>
+
+  <!-- ── TRIVIA ── -->
+  <div class="card game-area" id="game-trivia">
+    <div class="card-header"><span class="icon">🧠</span><h3>Trivia Battle (WA Bot)</h3></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:12px;color:var(--text-secondary)">
+        Kategori: <b id="trivia-kategori">—</b> · Hadiah: <b id="trivia-pot">—</b> · Waktu: <b id="trivia-timer">—</b>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="form-input" id="trivia-category" style="padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-primary)">
+          <option value="">Acak</option>
+          <option value="umum">Umum</option>
+          <option value="indonesia">Indonesia</option>
+          <option value="sains">Sains</option>
+          <option value="sepakbola">Sepakbola</option>
+          <option value="teknologi">Teknologi</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="triviaStart()">▶️ Mulai</button>
+        <button class="btn btn-secondary btn-sm" onclick="triviaHint()">💡 Hint</button>
+        <button class="btn btn-secondary btn-sm" onclick="triviaStop()">🛑 Stop</button>
+        <button class="btn btn-secondary btn-sm" onclick="triviaLeaderboard()">🏆 Skor</button>
+      </div>
+    </div>
+    <div style="background:var(--hover-bg);border:1px solid var(--border);border-radius:12px;padding:14px;min-height:90px">
+      <div style="font-weight:800;margin-bottom:8px" id="trivia-question">Tekan Mulai untuk memulai Trivia.</div>
+      <div style="font-size:12px;color:var(--text-secondary)" id="trivia-sub">Jawab dengan mengetik di bawah lalu kirim.</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <input class="form-input" id="trivia-answer" placeholder="Ketik jawaban..." style="flex:1;min-width:240px">
+      <button class="btn btn-primary" onclick="triviaAnswer()">✅ Jawab</button>
+    </div>
+    <div id="trivia-board" style="margin-top:12px"></div>
+  </div>
+
+  <!-- ── WORDLE ── -->
+  <div class="card game-area" id="game-wordle">
+    <div class="card-header"><span class="icon">🟩</span><h3>Wordle Indonesia (WA Bot)</h3></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:12px;color:var(--text-secondary)" id="wordle-status">Tekan Mulai untuk memulai.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="wordleStart()">▶️ Mulai</button>
+        <button class="btn btn-secondary btn-sm" onclick="wordleStop()">🏳️ Stop</button>
+        <button class="btn btn-secondary btn-sm" onclick="wordleStats()">📊 Skor</button>
+      </div>
+    </div>
+    <div style="background:var(--hover-bg);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <pre id="wordle-board" style="margin:0;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;white-space:pre-wrap;color:var(--text-primary)">(Belum ada tebakan)</pre>
+      <div style="margin-top:10px;font-size:12px;color:var(--text-secondary)" id="wordle-keyboard"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <input class="form-input" id="wordle-guess" placeholder="Tebak kata 5 huruf..." style="flex:1;min-width:240px" maxlength="5">
+      <button class="btn btn-primary" onclick="wordleGuess()">🟩 Tebak</button>
+    </div>
+    <div id="wordle-stats" style="margin-top:12px"></div>
+  </div>
+</main>
+</div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script>
+const fmt = n => Math.floor(n).toLocaleString('id-ID');
+let sessionScore=0, sessionWins=0, sessionEarn=0;
+let _triviaTick = null;
+let _triviaTimeoutAt = null;
+
+async function loadBalance(){
+  try{
+    const r=await api.get('/features/games');
+    if(!r||r.success===false) return;
+    document.getElementById('top-balance').textContent='Rp'+fmt(r.balance||0);
+    document.getElementById('stat-balance').textContent='Rp'+fmt(r.balance||0);
+  }catch(e){}
+}
+
+function updateSession(earned){
+  sessionScore+=Math.abs(earned);
+  if(earned>0){ sessionWins++; sessionEarn+=earned; }
+  document.getElementById('stat-session-score').textContent=sessionScore.toLocaleString('id-ID');
+  document.getElementById('stat-session-wins').textContent=sessionWins;
+  document.getElementById('stat-session-earn').textContent='Rp'+fmt(Math.max(0,sessionEarn));
+}
+
+// ── GAME SELECTOR ──
+function selectGame(g){
+  ['dadu','tebak','memory','math','trivia','wordle'].forEach(id=>{
+    document.getElementById(`game-${id}`).classList.toggle('active',id===g);
+    document.getElementById(`sel-${id}`).classList.toggle('active',id===g);
+  });
+}
+
+// ── DADU ──
+const DICE_EMOJI=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+let daduChoice=null;
+function selectDadu(n){
+  daduChoice=n;
+  [1,2,3,4,5,6].forEach(i=>{
+    const el=document.getElementById(`dadu-sel-${i}`);
+    el.classList.toggle('correct',i===n);
+    el.classList.remove('wrong');
+  });
+}
+async function playDadu(){
+  if(!daduChoice){ showToast('error','Pilih angka dulu!'); return; }
+  const rawBet=document.getElementById('dadu-bet').value;
+  const bet=parseInt(rawBet)||0;
+  if(bet<1000){ showToast('error','Bet minimal Rp1.000'); return; }
+  const btn=document.getElementById('btn-dadu');
+  btn.disabled=true;
+  const dice=document.getElementById('dice1');
+  dice.classList.add('rolling');
+  let rollCount=0;
+  const rollInterval=setInterval(()=>{
+    dice.textContent=DICE_EMOJI[Math.ceil(Math.random()*6)];
+    rollCount++;
+    if(rollCount>8){
+      clearInterval(rollInterval);
+      dice.classList.remove('rolling');
+      api.post('/features/games/dadu',{bet:rawBet,choice:daduChoice}).then(r=>{
+        if(!r||r.success===false){ showToast('error',r?.message||'Error'); btn.disabled=false; return; }
+        const result=r.roll||1;
+        dice.textContent=DICE_EMOJI[result];
+        const won=r.won;
+        const earned=won?(bet*2):-bet;
+        document.getElementById('dadu-result').textContent=r.message||(won?`🎉 Benar! Dadu = ${result} → +Rp${fmt(bet*2)}`:`💀 Salah! Dadu = ${result} → -Rp${fmt(bet)}`);
+        document.getElementById('dadu-result').style.color=won?'var(--accent-green)':'#e74c3c';
+        updateSession(earned);
+        loadBalance();
+        btn.disabled=false;
+      }).catch(e=>{ showToast('error',e.message||'Error'); btn.disabled=false; });
+    }
+  },100);
+}
+
+// ── TEBAK ANGKA ──
+let tebakAnswer=0, tebakAttempts=5, tebakReward=500000;
+function resetTebak(){
+  tebakAnswer=Math.floor(Math.random()*20)+1;
+  tebakAttempts=5;
+  document.getElementById('guess-display').textContent='🤔';
+  document.getElementById('number-hint').textContent='Tebak angka 1 sampai 20!';
+  document.getElementById('number-hint').style.color='var(--text-primary)';
+  document.getElementById('guess-attempts').textContent='5';
+  document.getElementById('guess-reward').textContent='Rp'+fmt(tebakReward);
+  const el=document.getElementById('guess-buttons');
+  el.innerHTML=[...Array(20)].map((_,i)=>`
+    <button class="guess-btn" id="gbtn-${i+1}" onclick="guessTebak(${i+1})">${i+1}</button>
+  `).join('');
+}
+async function guessTebak(n){
+  if(tebakAttempts<=0) return;
+  tebakAttempts--;
+  document.getElementById('guess-attempts').textContent=tebakAttempts;
+  document.getElementById(`gbtn-${n}`).disabled=true;
+  if(n===tebakAnswer){
+    document.getElementById(`gbtn-${n}`).className='guess-btn correct';
+    document.getElementById('guess-display').textContent='🎉';
+    document.getElementById('number-hint').textContent=`Benar! Angkanya ${n}! +Rp${fmt(tebakReward)}`;
+    document.getElementById('number-hint').style.color='var(--accent-green)';
+    try{
+      const r=await api.post('/features/games/minigame-reward',{amount:tebakReward});
+      if(r&&r.success) loadBalance();
+    }catch(e){}
+    updateSession(tebakReward);
+    showToast('success','🎉 Tebakan benar! +Rp'+fmt(tebakReward));
+    loadBalance();
+    setTimeout(resetTebak,3000);
+  } else if(tebakAttempts===0){
+    document.getElementById(`gbtn-${n}`).className='guess-btn wrong';
+    document.getElementById(`gbtn-${tebakAnswer}`).className='guess-btn correct';
+    document.getElementById('guess-display').textContent='😢';
+    document.getElementById('number-hint').textContent=`Salah! Angkanya ${tebakAnswer}!`;
+    document.getElementById('number-hint').style.color='#e74c3c';
+    setTimeout(resetTebak,3000);
+  } else {
+    document.getElementById(`gbtn-${n}`).className='guess-btn wrong';
+    const diff=Math.abs(n-tebakAnswer);
+    let hint='';
+    if(diff<=2) hint='🔥 Sangat dekat!';
+    else if(diff<=5) hint='🌡️ Sedikit lagi...';
+    else hint=n>tebakAnswer?'⬇️ Terlalu besar!':'⬆️ Terlalu kecil!';
+    document.getElementById('number-hint').textContent=hint;
+    document.getElementById('number-hint').style.color='#f39c12';
+  }
+}
+
+// ── MEMORY ──
+const MEMORY_ITEMS=['🍎','🍎','🍊','🍊','🍋','🍋','🍇','🍇','🍓','🍓','🍑','🍑','🥝','🥝','🫐','🫐'];
+let memFlipped=[], memMatched=0, memMoves=0, memLock=false;
+function resetMemory(){
+  memFlipped=[]; memMatched=0; memMoves=0; memLock=false;
+  document.getElementById('memory-moves').textContent='0';
+  document.getElementById('memory-status').textContent='';
+  const shuffled=[...MEMORY_ITEMS].sort(()=>Math.random()-.5);
+  const el=document.getElementById('memory-grid');
+  el.innerHTML=shuffled.map((emoji,i)=>`
+    <div class="memory-card" id="mc-${i}" onclick="flipMemory(${i})">
+      <span class="memory-front">${emoji}</span>
+      <span class="memory-back">🂠</span>
+    </div>
+  `).join('');
+  // Store shuffled for matching
+  window._memCards=shuffled;
+}
+function flipMemory(i){
+  if(memLock||memFlipped.includes(i)) return;
+  const card=document.getElementById(`mc-${i}`);
+  if(card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  memFlipped.push(i);
+  if(memFlipped.length===2){
+    memMoves++;
+    document.getElementById('memory-moves').textContent=memMoves;
+    memLock=true;
+    const [a,b]=memFlipped;
+    if(window._memCards[a]===window._memCards[b]){
+      document.getElementById(`mc-${a}`).classList.add('matched');
+      document.getElementById(`mc-${b}`).classList.add('matched');
+      memMatched++;
+      memFlipped=[]; memLock=false;
+      if(memMatched===8){
+        document.getElementById('memory-status').textContent=`🎉 Selesai dalam ${memMoves} giliran! +Rp500.000`;
+        document.getElementById('memory-status').style.color='var(--accent-green)';
+        try{
+          const r=await api.post('/features/games/minigame-reward',{amount:500000});
+          if(r&&r.success) loadBalance();
+        }catch(e){}
+        updateSession(500000);
+        showToast('success','🧠 Memory Card selesai! +Rp500.000');
+      }
+    } else {
+      setTimeout(()=>{
+        document.getElementById(`mc-${a}`).classList.remove('flipped');
+        document.getElementById(`mc-${b}`).classList.remove('flipped');
+        memFlipped=[]; memLock=false;
+      },800);
+    }
+  }
+}
+
+// ── MATH QUIZ ──
+let mathAnswer=null, mathStreak=0, mathTimer=null, mathTimeLeft=15;
+const MATH_REWARD=100000;
+function newMathQuestion(){
+  clearInterval(mathTimer);
+  mathTimeLeft=15;
+  document.getElementById('math-timer').textContent='15';
+  document.querySelectorAll('.math-opt').forEach(el=>{
+    el.classList.remove('correct','wrong','disabled');
+  });
+  // Generate question
+  const ops=['+','-','×'];
+  const op=ops[Math.floor(Math.random()*3)];
+  let a=Math.floor(Math.random()*20)+1;
+  let b=Math.floor(Math.random()*20)+1;
+  let ans;
+  if(op==='+') ans=a+b;
+  else if(op==='-'){ ans=a-b; }
+  else { a=Math.floor(Math.random()*12)+1; b=Math.floor(Math.random()*12)+1; ans=a*b; }
+  mathAnswer=ans;
+  document.getElementById('math-question').textContent=`${a} ${op} ${b} = ?`;
+  // Generate options
+  const opts=new Set([ans]);
+  while(opts.size<4) opts.add(ans+Math.floor(Math.random()*21)-10);
+  const shuffled=[...opts].sort(()=>Math.random()-.5);
+  document.getElementById('math-options').innerHTML=shuffled.map(o=>`
+    <div class="math-opt" onclick="answerMath(this,${o})">${o}</div>
+  `).join('');
+  // Timer
+  mathTimer=setInterval(()=>{
+    mathTimeLeft--;
+    document.getElementById('math-timer').textContent=mathTimeLeft;
+    if(mathTimeLeft<=0){
+      clearInterval(mathTimer);
+      document.querySelectorAll('.math-opt').forEach(el=>{ el.classList.add('disabled'); if(parseInt(el.textContent)===mathAnswer) el.classList.add('correct'); });
+      mathStreak=0;
+      document.getElementById('math-streak').textContent='0';
+      setTimeout(newMathQuestion,1500);
+    }
+  },1000);
+}
+async function answerMath(el,val){
+  clearInterval(mathTimer);
+  document.querySelectorAll('.math-opt').forEach(e=>e.classList.add('disabled'));
+  if(val===mathAnswer){
+    el.classList.add('correct');
+    mathStreak++;
+    document.getElementById('math-streak').textContent=mathStreak;
+    const bonus=MATH_REWARD*Math.min(mathStreak,5);
+    try{
+      const r=await api.post('/features/games/minigame-reward',{amount:bonus});
+      if(r&&r.success) loadBalance();
+    }catch(e){}
+    updateSession(bonus);
+    showToast('success',`✅ Benar! +Rp${fmt(bonus)} (Streak ${mathStreak}x)`);
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.math-opt').forEach(e=>{ if(parseInt(e.textContent)===mathAnswer) e.classList.add('correct'); });
+    mathStreak=0;
+    document.getElementById('math-streak').textContent='0';
+    showToast('error','❌ Salah!');
+  }
+  setTimeout(newMathQuestion,1500);
+}
+
+// ── TRIVIA (WA Bot port) ──
+function _setTriviaTimer(timeoutAt){
+  _triviaTimeoutAt = timeoutAt || null;
+  if(_triviaTick) clearInterval(_triviaTick);
+  _triviaTick = setInterval(()=>{
+    if(!_triviaTimeoutAt){ document.getElementById('trivia-timer').textContent='—'; return; }
+    const left = _triviaTimeoutAt - Date.now();
+    if(left<=0){
+      document.getElementById('trivia-timer').textContent='0s';
+      triviaStatus(); // refresh to see timeout event
+      return;
+    }
+    document.getElementById('trivia-timer').textContent=Math.ceil(left/1000)+'s';
+  },250);
+}
+
+async function triviaStatus(){
+  try{
+    const r=await api.get('/features/trivia/status');
+    if(!r||r.success===false) return;
+    if(r.lastEvent){
+      document.getElementById('trivia-sub').textContent=r.lastEvent;
+    }
+    if(!r.active){
+      document.getElementById('trivia-kategori').textContent='—';
+      document.getElementById('trivia-pot').textContent='—';
+      document.getElementById('trivia-timer').textContent='—';
+      document.getElementById('trivia-question').textContent='Tekan Mulai untuk memulai Trivia.';
+      _setTriviaTimer(null);
+      return;
+    }
+    document.getElementById('trivia-kategori').textContent=(r.kategori||'—').toUpperCase();
+    document.getElementById('trivia-pot').textContent='Rp'+fmt(r.pot||0);
+    document.getElementById('trivia-question').textContent=r.soal||'—';
+    document.getElementById('trivia-sub').textContent='Jawab dengan mengetik di bawah lalu kirim.';
+    _setTriviaTimer(r.timeoutAt);
+  }catch(e){}
+}
+
+async function triviaStart(){
+  const kategori=document.getElementById('trivia-category').value;
+  try{
+    const r=await api.post('/features/trivia/start',{kategori});
+    if(!r||r.success===false){ showToast('error',r?.message||'Gagal'); return; }
+    showToast('success','Trivia dimulai!');
+    document.getElementById('trivia-answer').value='';
+    await triviaStatus();
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function triviaAnswer(){
+  const answer=document.getElementById('trivia-answer').value;
+  try{
+    const r=await api.post('/features/trivia/answer',{answer});
+    if(!r||r.success===false){ showToast('error',r?.message||'Error'); return; }
+    if(r.correct){
+      showToast('success',r.message);
+      updateSession(r.reward||0);
+      loadBalance();
+      document.getElementById('trivia-answer').value='';
+    } else {
+      showToast('error',r.message||'Salah!');
+    }
+    await triviaStatus();
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function triviaHint(){
+  try{
+    const r=await api.post('/features/trivia/hint',{});
+    if(!r||r.success===false){ showToast('error',r?.message||'Tidak ada sesi'); return; }
+    showToast('info',r.message);
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function triviaStop(){
+  try{
+    const r=await api.post('/features/trivia/stop',{});
+    if(!r||r.success===false){ showToast('error',r?.message||'Tidak ada sesi'); return; }
+    showToast('info',r.message);
+    await triviaStatus();
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function triviaLeaderboard(){
+  try{
+    const r=await api.get('/features/trivia/leaderboard');
+    if(!r||r.success===false){ showToast('error',r?.message||'Gagal'); return; }
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    const rows=(r.leaderboard||[]).map((x,i)=>`${medals[i]} <b>${x.name}</b> — ${x.triviaSkor} benar`).join('<br>');
+    document.getElementById('trivia-board').innerHTML=`
+      <div class="alert alert-info" style="margin:0">
+        <b>LEADERBOARD TRIVIA</b><br><br>
+        ${rows||'Belum ada skor trivia.'}
+        <br><br>Kamu: <b>${r.me?.triviaSkor||0}</b> benar
+      </div>`;
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+// ── WORDLE (WA Bot port) ──
+async function wordleStatus(){
+  try{
+    const r=await api.get('/features/wordle/status');
+    if(!r||r.success===false) return;
+    if(!r.active){
+      document.getElementById('wordle-status').textContent='Tekan Mulai untuk memulai.';
+      document.getElementById('wordle-board').textContent='(Belum ada tebakan)';
+      document.getElementById('wordle-keyboard').textContent='';
+      return;
+    }
+    document.getElementById('wordle-status').textContent=`Sisa percobaan: ${r.remaining}/${r.maxAttempts}`;
+    document.getElementById('wordle-board').textContent=(r.board||'').replace(/\*/g,''); // remove WA bold markers for web
+    document.getElementById('wordle-keyboard').textContent=r.keyboard?`⌨️ ${r.keyboard}`:'';
+  }catch(e){}
+}
+
+async function wordleStart(){
+  try{
+    const r=await api.post('/features/wordle/start',{});
+    if(!r||r.success===false){ showToast('error',r?.message||'Gagal'); return; }
+    showToast('success',r.message||'Wordle dimulai!');
+    document.getElementById('wordle-guess').value='';
+    document.getElementById('wordle-stats').innerHTML='';
+    await wordleStatus();
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function wordleGuess(){
+  const guess=document.getElementById('wordle-guess').value;
+  try{
+    const r=await api.post('/features/wordle/guess',{guess});
+    if(!r||r.success===false){ showToast('error',r?.message||'Error'); return; }
+    showToast(r.won?'success':'info',r.message||'');
+    document.getElementById('wordle-board').textContent=(r.board||'').replace(/\*/g,'');
+    document.getElementById('wordle-keyboard').textContent=r.keyboard?`⌨️ ${r.keyboard}`:'';
+    if(r.done){
+      if(r.won){
+        updateSession(r.reward||0);
+        loadBalance();
+      }
+      document.getElementById('wordle-status').textContent=r.won?'Menang! Tekan Mulai untuk main lagi.':'Game over! Tekan Mulai untuk coba lagi.';
+    } else {
+      document.getElementById('wordle-status').textContent=r.remaining!=null?`Sisa percobaan: ${r.remaining}/6`:'';
+    }
+    document.getElementById('wordle-guess').value='';
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function wordleStop(){
+  try{
+    const r=await api.post('/features/wordle/stop',{});
+    if(!r||r.success===false){ showToast('error',r?.message||'Tidak ada game'); return; }
+    showToast('info',r.message);
+    await wordleStatus();
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+async function wordleStats(){
+  try{
+    const r=await api.get('/features/wordle/stats');
+    if(!r||r.success===false){ showToast('error',r?.message||'Gagal'); return; }
+    const s=r.stats||{};
+    document.getElementById('wordle-stats').innerHTML=`
+      <div class="alert alert-info" style="margin:0">
+        <b>STATISTIK WORDLE</b><br><br>
+        🎮 Total Dimainkan: <b>${s.gamesPlayed||0}</b><br>
+        ✅ Menang: <b>${s.menang||0}</b><br>
+        ❌ Kalah: <b>${s.kalah||0}</b><br>
+        📈 Win Rate: <b>${s.winRate||0}%</b><br>
+        🔥 Streak Sekarang: <b>${s.streak||0}</b><br>
+        🏆 Best Streak: <b>${s.bestStreak||0}</b>
+      </div>`;
+  }catch(e){ showToast('error',e.message||'Error'); }
+}
+
+// Init
+const ME=getUser();
+if(ME){
+  document.getElementById('sidebar-username').textContent=ME.username;
+  document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();
+  document.getElementById('sidebar-role').textContent=ME.role||'user';
+  if(ME.role==='admin'||ME.role==='developer') document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('hidden'));
+}
+loadBalance();
+triviaStatus();
+wordleStatus();
+resetTebak();
+resetMemory();
+newMathQuestion();
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgojoGacor — Leaderboard</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div></div></div>
+            <nav class="sidebar-nav">
+                <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+                <a class="nav-item active" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div><div><div class="user-name" id="sidebar-username">Loading...</div></div></div>
+                <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
+            </div>
+        </aside>
+        <div class="main-content">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:12px"><button class="hamburger" onclick="toggleSidebar()">☰</button><span class="topbar-title">🏆 Leaderboard</span></div>
+                <div class="topbar-actions">
+                    <select class="form-input" id="lb-type" onchange="loadLeaderboard()" style="width:auto;padding:6px 12px;font-size:13px">
+                        <option value="balance">💰 Saldo</option>
+                        <option value="level">🎖️ Level</option>
+                    </select>
+                </div>
+            </header>
+            <main class="content-area">
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>#</th><th>Username</th><th>Saldo</th><th>Level</th></tr></thead>
+                            <tbody id="lb-table"><tr><td colspan="4" style="text-align:center;padding:20px">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div id="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+        const ME = getUser();
+        document.addEventListener('DOMContentLoaded', () => {
+            if (ME) { document.getElementById('sidebar-username').textContent = ME.username; document.getElementById('sidebar-avatar').textContent = ME.username[0].toUpperCase(); }
+            loadLeaderboard();
+        });
+
+        async function loadLeaderboard() {
+            const type = document.getElementById('lb-type').value;
+            const data = await api.get(`/user/leaderboard?type=${type}`);
+            const tbody = document.getElementById('lb-table');
+            if (!data?.success) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Gagal memuat.</td></tr>'; return; }
+
+            const medals = ['🥇','🥈','🥉'];
+            tbody.innerHTML = data.leaderboard.map((u, i) => `
+                <tr style="${u.username === ME?.username ? 'background:rgba(233,69,96,0.08)' : ''}">
+                    <td>${medals[i] || `#${i+1}`}</td>
+                    <td><strong>${u.username === ME?.username ? '⭐ ' : ''}${u.username}</strong></td>
+                    <td class="money">${fmtMoney(u.balance)}</td>
+                    <td>Lv.${u.level}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

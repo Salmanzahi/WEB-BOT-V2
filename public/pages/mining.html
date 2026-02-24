@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlgojoGacor — Mining</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+<style>
+.rig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.rig-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;position:relative}
+.rig-card:hover{border-color:var(--accent-purple);transform:translateY(-2px)}
+.rig-card.owned{border-color:rgba(155,89,182,.4);background:rgba(155,89,182,.04)}
+.rig-icon{font-size:44px;text-align:center;margin-bottom:10px}
+.rig-name{font-weight:700;font-size:15px;margin-bottom:6px}
+.rig-meta{font-size:12px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px}
+.badge-illegal{background:#e74c3c;color:#fff;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;position:absolute;top:12px;right:12px}
+.badge-legal{background:#27ae60;color:#fff;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;position:absolute;top:12px;right:12px}
+.income-display{background:linear-gradient(135deg,rgba(155,89,182,.15),rgba(52,152,219,.15));border:1px solid rgba(155,89,182,.3);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px}
+.income-big{font-size:36px;font-weight:800;color:var(--accent-purple);margin:8px 0}
+.income-sub{font-size:13px;color:var(--text-secondary)}
+.my-rigs-list{display:flex;flex-direction:column;gap:10px}
+.my-rig-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--hover-bg);border-radius:10px;border:1px solid var(--border)}
+.hash-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--accent-purple),var(--accent-blue));margin-top:6px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
+.tab{padding:10px 20px;cursor:pointer;border-radius:8px 8px 0 0;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab.active{color:var(--accent-purple);border-bottom-color:var(--accent-purple);background:rgba(155,89,182,.08)}
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div><div class="logo-sub">Web Platform</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Utama</div>
+    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/pages/profile.html"><span class="nav-icon">👤</span> Profil & Status</a>
+    <a class="nav-item" href="/chat.html"><span class="nav-icon">💬</span> Live Chat</a>
+    <div class="nav-section">Kehidupan & Ekonomi</div>
+    <a class="nav-item" href="/pages/economy.html"><span class="nav-icon">💰</span> Ekonomi & Bank</a>
+    <a class="nav-item" href="/pages/jobs.html"><span class="nav-icon">💼</span> Pekerjaan</a>
+    <a class="nav-item" href="/pages/life.html"><span class="nav-icon">❤️</span> Survival</a>
+    <div class="nav-section">Games</div>
+    <a class="nav-item" href="/pages/games.html"><span class="nav-icon">🎮</span> Casino & Games</a>
+    <a class="nav-item" href="/pages/minigames.html"><span class="nav-icon">🎲</span> Mini Games</a>
+    <div class="nav-section">Bisnis</div>
+    <a class="nav-item" href="/pages/farming.html"><span class="nav-icon">🌾</span> Farming</a>
+    <a class="nav-item" href="/pages/ternak.html"><span class="nav-icon">🐄</span> Peternakan</a>
+    <a class="nav-item active" href="/pages/mining.html"><span class="nav-icon">⛏️</span> Mining</a>
+    <a class="nav-item" href="/pages/property.html"><span class="nav-icon">🏢</span> Properti</a>
+    <div class="nav-section">AI & Tools</div>
+    <a class="nav-item" href="/pages/ai.html"><span class="nav-icon">🤖</span> AI Chat</a>
+    <a class="nav-item" href="/pages/tools.html"><span class="nav-icon">🛠️</span> Tools & Utilitas</a>
+    <a class="nav-item" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <div class="nav-section admin-only hidden">Admin</div>
+    <a class="nav-item admin-only hidden" href="/pages/admin.html"><span class="nav-icon">⚙️</span> Panel Admin</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-username">Loading...</div><div class="user-role" id="sidebar-role">—</div></div></div>
+    <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="main-content">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title">⛏️ Crypto Mining</span>
+  </div>
+  <div style="font-size:13px;color:var(--text-secondary)">Saldo: <span id="top-balance" style="font-weight:700;color:var(--accent-green)">...</span></div>
+</header>
+
+<main class="content-area">
+  <!-- Income Display -->
+  <div class="income-display">
+    <div class="income-sub">⛏️ Total Hashrate Farming</div>
+    <div class="income-big" id="total-hash">0 MH/s</div>
+    <div class="income-sub">Pendapatan: <span id="hourly-income" style="color:var(--accent-green);font-weight:700">Rp0/jam</span></div>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="collectIncome()" id="btn-collect">⛏️ Klaim Pendapatan</button>
+    </div>
+    <div id="collect-info" style="margin-top:10px;font-size:12px;color:var(--text-secondary)"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="status-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-value" id="stat-rigs">0</div><div class="stat-label">🖥️ Jumlah Rig</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-hash">0</div><div class="stat-label">⚡ MH/s</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-balance">...</div><div class="stat-label">💰 Saldo</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-pending">Rp0</div><div class="stat-label">⏳ Pending Income</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('rig-saya')">🖥️ Rig Saya</div>
+    <div class="tab" onclick="switchTab('shop')">🛒 Toko Rig</div>
+    <div class="tab" onclick="switchTab('panduan')">📖 Panduan</div>
+  </div>
+
+  <!-- RIG SAYA -->
+  <div id="tab-rig-saya">
+    <div class="card">
+      <div class="card-header"><span class="icon">🖥️</span><h3>Mining Farm Saya</h3></div>
+      <div id="my-rigs-list"><div class="alert alert-info">Belum punya rig. Beli di Toko Rig!</div></div>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div id="tab-shop" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">🛒</span><h3>Toko Mining Rig</h3></div>
+      <div class="alert alert-info" style="margin-bottom:16px">💡 Bisa punya banyak rig! Semakin banyak, semakin besar income per jam.</div>
+      <div class="rig-grid" id="rig-shop-grid"></div>
+    </div>
+  </div>
+
+  <!-- PANDUAN -->
+  <div id="tab-panduan" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">📖</span><h3>Panduan Mining</h3></div>
+      <div style="line-height:2">
+        <p>⛏️ <b>Beli Rig</b> → GPU/ASIC mulai mine otomatis.</p>
+        <p>⚡ <b>Hashrate</b> → lebih tinggi = lebih banyak income per jam.</p>
+        <p>💰 <b>Klaim Pendapatan</b> → tekan tombol untuk klaim income yang terkumpul.</p>
+        <p>📈 <b>Max Offline</b> → income terkumpul maksimal 24 jam.</p>
+        <hr style="margin:16px 0;border-color:var(--border)">
+        <h4 style="margin-bottom:12px">⚡ Formula Income</h4>
+        <div style="background:var(--hover-bg);padding:14px;border-radius:10px;font-family:monospace">
+          Income = Hashrate × Rp150.000 × Jam_berlalu
+        </div>
+        <p style="margin-top:12px">Contoh: 1 RTX 4070 (60 MH/s) × Rp150.000 × 1 jam = <b style="color:var(--accent-green)">Rp9.000.000/jam</b></p>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script>
+const RIGS = {
+  rtx4070:    { icon:'🟢', name:'RTX 4070 Ti',    harga:4000000000,   hash:60,   type:'legal' },
+  rtx4090:    { icon:'🔵', name:'RTX 4090 OC',     harga:9500000000,   hash:120,  type:'legal' },
+  dual4090:   { icon:'🟣', name:'Dual RTX 4090',   harga:15000000000,  hash:240,  type:'legal' },
+  asic:       { icon:'🟠', name:'Antminer S19',    harga:18000000000,  hash:500,  type:'legal' },
+  usb_miner:  { icon:'🏴', name:'USB Miner Hack',  harga:1500000000,   hash:5,    type:'illegal' },
+  quantum_rig:{ icon:'🏴', name:'Quantum Rig',     harga:25000000000,  hash:1200, type:'illegal' },
+};
+const INCOME_PER_HASH = 150000;
+
+let status = { rigs:[], totalHash:0, hourlyIncome:0, lastCollect:0, balance:0 };
+const fmt = n => Math.floor(n).toLocaleString('id-ID');
+function fmtTime(ms){
+  if(ms<=0) return '0m';
+  const m=Math.floor(ms/60000),h=Math.floor(m/60);
+  if(h>0) return `${h}j ${m%60}m`;
+  return `${m}m`;
+}
+
+async function load(){
+  try{
+    const r=await api.get('/features/mining');
+    status=r;
+    document.getElementById('top-balance').textContent='Rp'+fmt(r.balance||0);
+    document.getElementById('stat-balance').textContent='Rp'+fmt(r.balance||0);
+    document.getElementById('stat-rigs').textContent=r.rigs?.length||0;
+    document.getElementById('stat-hash').textContent=(r.totalHash||0)+' MH/s';
+    document.getElementById('total-hash').textContent=(r.totalHash||0)+' MH/s';
+    const hourly=r.hourlyIncome||0;
+    document.getElementById('hourly-income').textContent='Rp'+fmt(hourly)+'/jam';
+    // Pending
+    const now=Date.now(), last=r.lastCollect||now;
+    const hrs=Math.min((now-last)/3600000,24);
+    const pending=Math.floor((r.totalHash||0)*INCOME_PER_HASH*hrs);
+    document.getElementById('stat-pending').textContent='Rp'+fmt(pending);
+    if(r.lastCollect){
+      const elapsed=fmtTime(now-r.lastCollect);
+      document.getElementById('collect-info').textContent=`⏱️ Terakhir klaim: ${elapsed} lalu`;
+    }
+    renderMyRigs();
+    renderShop();
+  }catch(e){ showToast('error','Gagal memuat data mining'); }
+}
+
+function renderMyRigs(){
+  const el=document.getElementById('my-rigs-list');
+  const rigs=status.rigs||[];
+  if(!rigs.length){ el.innerHTML='<div class="alert alert-info">Belum punya rig. Beli di Toko Rig!</div>'; return; }
+  // Group by type
+  const groups={};
+  rigs.forEach(r=>{ groups[r]=(groups[r]||0)+1; });
+  const maxHash=1200;
+  el.innerHTML=Object.entries(groups).map(([key,count])=>{
+    const rd=RIGS[key]||{};
+    const hash=(rd.hash||0)*count;
+    const income=hash*INCOME_PER_HASH;
+    const pct=Math.min(100,Math.floor(hash/maxHash*100));
+    return `
+    <div class="my-rig-row">
+      <div>
+        <div style="font-weight:700">${rd.icon||'🖥️'} ${rd.name||key} × ${count}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">⚡ ${hash} MH/s total · 💰 Rp${fmt(income)}/jam</div>
+        <div class="hash-bar" style="width:${pct}%;max-width:200px;margin-top:6px"></div>
+      </div>
+      <span style="font-size:12px;background:${rd.type==='illegal'?'rgba(231,76,60,.15)':'rgba(39,174,96,.15)'};color:${rd.type==='illegal'?'#e74c3c':'#27ae60'};padding:4px 10px;border-radius:20px;font-weight:700">${rd.type==='illegal'?'🏴 Ilegal':'✅ Legal'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderShop(){
+  const el=document.getElementById('rig-shop-grid');
+  el.innerHTML=Object.entries(RIGS).map(([key,r])=>{
+    const incomePerHour=r.hash*INCOME_PER_HASH;
+    const roiHours=Math.ceil(r.harga/incomePerHour);
+    return `
+    <div class="rig-card">
+      <span class="${r.type==='illegal'?'badge-illegal':'badge-legal'}">${r.type==='illegal'?'🏴 ILEGAL':'✅ LEGAL'}</span>
+      <div class="rig-icon">${r.icon}</div>
+      <div class="rig-name">${r.name}</div>
+      <div class="rig-meta">
+        ⚡ Hashrate: <b>${r.hash} MH/s</b><br>
+        💰 Income: <b>Rp${fmt(incomePerHour)}/jam</b><br>
+        ⏱️ ROI: <b>~${roiHours} jam</b><br>
+        💸 Harga: <b>Rp${fmt(r.harga)}</b>
+      </div>
+      <button class="btn btn-primary btn-block btn-sm" onclick="beliRig('${key}')">🛒 Beli</button>
+    </div>`;
+  }).join('');
+}
+
+async function collectIncome(){
+  const btn=document.getElementById('btn-collect');
+  btn.disabled=true; btn.textContent='⏳ Mengklaim...';
+  try{
+    const r=await api.post('/features/mining/collect',{});
+    showToast('success',r.message);
+    load();
+  }catch(e){ showToast('error',e.message||'Gagal klaim'); }
+  finally{ btn.disabled=false; btn.textContent='⛏️ Klaim Pendapatan'; }
+}
+
+async function beliRig(rig){
+  const rd=RIGS[rig];
+  if(!confirm(`Beli ${rd.name} seharga Rp${fmt(rd.harga)}?`)) return;
+  try{
+    const r=await api.post('/features/mining/beli-rig',{rig});
+    showToast('success',r.message); load();
+  }catch(e){ showToast('error',e.message||'Gagal beli rig'); }
+}
+
+function switchTab(tab){
+  ['rig-saya','shop','panduan'].forEach(t=>{
+    document.getElementById(`tab-${t}`).classList.toggle('hidden',t!==tab);
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['rig-saya','shop','panduan'][i]===tab);
+  });
+}
+
+const ME=getUser();
+if(ME){
+  document.getElementById('sidebar-username').textContent=ME.username;
+  document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();
+  document.getElementById('sidebar-role').textContent=ME.role||'user';
+  if(ME.role==='admin'||ME.role==='developer') document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('hidden'));
+}
+load();
+setInterval(load,30000);
+</script>
+</body>
+</html>

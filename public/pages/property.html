@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlgojoGacor — Properti</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+<style>
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.prop-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;position:relative}
+.prop-card:hover{border-color:var(--accent-blue);transform:translateY(-2px)}
+.prop-card.owned{border-color:rgba(52,152,219,.4);background:rgba(52,152,219,.04)}
+.prop-icon{font-size:44px;text-align:center;margin-bottom:10px}
+.prop-tier{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px}
+.tier1{background:rgba(39,174,96,.2);color:#27ae60}
+.tier2{background:rgba(52,152,219,.2);color:#3498db}
+.tier3{background:rgba(155,89,182,.2);color:#9b59b6}
+.tier4{background:rgba(231,76,60,.2);color:#e74c3c}
+.tier5{background:rgba(243,156,18,.2);color:#f39c12}
+.income-display{background:linear-gradient(135deg,rgba(52,152,219,.12),rgba(39,174,96,.12));border:1px solid rgba(52,152,219,.3);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px}
+.income-big{font-size:36px;font-weight:800;color:var(--accent-blue);margin:8px 0}
+.owned-grid{display:flex;flex-direction:column;gap:10px}
+.owned-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--hover-bg);border-radius:10px;border:1px solid var(--border)}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
+.tab{padding:10px 20px;cursor:pointer;border-radius:8px 8px 0 0;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab.active{color:var(--accent-blue);border-bottom-color:var(--accent-blue);background:rgba(52,152,219,.08)}
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div><div class="logo-sub">Web Platform</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Utama</div>
+    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/pages/profile.html"><span class="nav-icon">👤</span> Profil & Status</a>
+    <a class="nav-item" href="/chat.html"><span class="nav-icon">💬</span> Live Chat</a>
+    <div class="nav-section">Kehidupan & Ekonomi</div>
+    <a class="nav-item" href="/pages/economy.html"><span class="nav-icon">💰</span> Ekonomi & Bank</a>
+    <a class="nav-item" href="/pages/jobs.html"><span class="nav-icon">💼</span> Pekerjaan</a>
+    <a class="nav-item" href="/pages/life.html"><span class="nav-icon">❤️</span> Survival</a>
+    <div class="nav-section">Games</div>
+    <a class="nav-item" href="/pages/games.html"><span class="nav-icon">🎮</span> Casino & Games</a>
+    <a class="nav-item" href="/pages/minigames.html"><span class="nav-icon">🎲</span> Mini Games</a>
+    <div class="nav-section">Bisnis</div>
+    <a class="nav-item" href="/pages/farming.html"><span class="nav-icon">🌾</span> Farming</a>
+    <a class="nav-item" href="/pages/ternak.html"><span class="nav-icon">🐄</span> Peternakan</a>
+    <a class="nav-item" href="/pages/mining.html"><span class="nav-icon">⛏️</span> Mining</a>
+    <a class="nav-item active" href="/pages/property.html"><span class="nav-icon">🏢</span> Properti</a>
+    <div class="nav-section">AI & Tools</div>
+    <a class="nav-item" href="/pages/ai.html"><span class="nav-icon">🤖</span> AI Chat</a>
+    <a class="nav-item" href="/pages/tools.html"><span class="nav-icon">🛠️</span> Tools & Utilitas</a>
+    <a class="nav-item" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <div class="nav-section admin-only hidden">Admin</div>
+    <a class="nav-item admin-only hidden" href="/pages/admin.html"><span class="nav-icon">⚙️</span> Panel Admin</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-username">Loading...</div><div class="user-role" id="sidebar-role">—</div></div></div>
+    <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="main-content">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title">🏢 Properti & Bisnis</span>
+  </div>
+  <div style="font-size:13px;color:var(--text-secondary)">Saldo: <span id="top-balance" style="font-weight:700;color:var(--accent-green)">...</span></div>
+</header>
+
+<main class="content-area">
+  <!-- Income Hero -->
+  <div class="income-display">
+    <div style="font-size:13px;color:var(--text-secondary)">🏢 Total Passive Income</div>
+    <div class="income-big" id="hourly-income">Rp0/jam</div>
+    <div style="font-size:12px;color:var(--text-secondary)" id="daily-income">≈ Rp0/hari</div>
+    <button class="btn btn-primary" onclick="collectIncome()" style="margin-top:16px" id="btn-collect">💰 Klaim Pendapatan</button>
+    <div id="collect-info" style="margin-top:8px;font-size:12px;color:var(--text-secondary)"></div>
+  </div>
+
+  <div class="status-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-value" id="stat-owned">0</div><div class="stat-label">🏢 Properti Dimiliki</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-hourly">Rp0</div><div class="stat-label">💰 Income/jam</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-pending">Rp0</div><div class="stat-label">⏳ Pending</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-balance">...</div><div class="stat-label">💰 Saldo</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('milik')">🏢 Properti Saya</div>
+    <div class="tab" onclick="switchTab('toko')">🏪 Pasar Properti</div>
+  </div>
+
+  <!-- MILIK SAYA -->
+  <div id="tab-milik">
+    <div class="card">
+      <div class="card-header"><span class="icon">🏢</span><h3>Portofolio Bisnis</h3></div>
+      <div id="owned-list"><div class="alert alert-info">Belum punya properti. Beli di Pasar Properti!</div></div>
+    </div>
+  </div>
+
+  <!-- TOKO -->
+  <div id="tab-toko" class="hidden">
+    <div class="card">
+      <div class="card-header"><span class="icon">🏪</span><h3>Pasar Properti</h3></div>
+      <div class="alert alert-info" style="margin-bottom:16px">💡 Setiap properti hanya bisa dimiliki 1x. Kumpulkan semua untuk jadi konglomerat!</div>
+      <div class="prop-grid" id="prop-shop-grid"></div>
+    </div>
+  </div>
+</main>
+</div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script>
+const PROPS = {
+  gerobak:   { icon:'🍡', name:'Gerobak Cilok',           harga:5000000,       income:500000,       tier:1, cap:500000 },
+  kios:      { icon:'📱', name:'Kios Pulsa',              harga:20000000,      income:2000000,      tier:1, cap:2500000 },
+  laundry:   { icon:'🧺', name:'Laundry Kiloan',          harga:50000000,      income:5000000,      tier:1, cap:7000000 },
+  warnet:    { icon:'💻', name:'Warnet Gaming',           harga:150000000,     income:15000000,     tier:2, cap:25000000 },
+  cafe:      { icon:'☕', name:'Coffee Shop Hits',        harga:400000000,     income:40000000,     tier:2, cap:80000000 },
+  minimarket:{ icon:'🏪', name:'Minimarket 24 Jam',      harga:850000000,     income:85000000,     tier:2, cap:200000000 },
+  pabrik:    { icon:'🏭', name:'Pabrik Tekstil',         harga:2500000000,    income:250000000,    tier:3, cap:600000000 },
+  spbu:      { icon:'⛽', name:'SPBU Pom Bensin',        harga:7000000000,    income:700000000,    tier:3, cap:2000000000 },
+  hotel:     { icon:'🏨', name:'Hotel Bintang 5',        harga:15000000000,   income:1500000000,   tier:3, cap:5000000000 },
+  mall:      { icon:'🏙️', name:'Mall Grand Indonesia',  harga:50000000000,   income:5000000000,   tier:4, cap:15000000000 },
+  maskapai:  { icon:'✈️', name:'Maskapai Penerbangan',  harga:200000000000,  income:20000000000,  tier:4, cap:80000000000 },
+  satelit:   { icon:'🛸', name:'Perusahaan Satelit',    harga:1000000000000, income:100000000000, tier:5, cap:500000000000 },
+};
+const TIER_LABEL=['','UMKM','JURAGAN','BOSS BESAR','KONGLOMERAT','END GAME'];
+const TIER_CLASS=['','tier1','tier2','tier3','tier4','tier5'];
+
+let status = { properties:[], totalHourlyIncome:0, lastCollect:0, balance:0 };
+const fmt = n => {
+  n=Math.floor(n);
+  if(n>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(n>=1e9)  return (n/1e9).toFixed(1)+'M';
+  if(n>=1e6)  return (n/1e6).toFixed(1)+'jt';
+  return n.toLocaleString('id-ID');
+};
+const fmtFull = n => Math.floor(n).toLocaleString('id-ID');
+function fmtTime(ms){
+  if(ms<=0) return '0m';
+  const m=Math.floor(ms/60000),h=Math.floor(m/60);
+  return h>0?`${h}j ${m%60}m`:`${m}m`;
+}
+
+async function load(){
+  try{
+    const r=await api.get('/features/property');
+    status=r;
+    const hourly=r.totalHourlyIncome||0;
+    document.getElementById('top-balance').textContent='Rp'+fmt(r.balance||0);
+    document.getElementById('stat-balance').textContent='Rp'+fmt(r.balance||0);
+    document.getElementById('stat-owned').textContent=(r.properties||[]).length;
+    document.getElementById('stat-hourly').textContent='Rp'+fmt(hourly)+'/j';
+    document.getElementById('hourly-income').textContent='Rp'+fmtFull(hourly)+'/jam';
+    document.getElementById('daily-income').textContent='≈ Rp'+fmtFull(hourly*24)+'/hari';
+    // Pending
+    const now=Date.now(),last=r.lastCollect||now;
+    const hrs=Math.min((now-last)/3600000,24);
+    const pending=Math.floor(hourly*hrs);
+    document.getElementById('stat-pending').textContent='Rp'+fmt(pending);
+    if(r.lastCollect) document.getElementById('collect-info').textContent=`Terakhir klaim: ${fmtTime(now-r.lastCollect)} lalu`;
+    renderOwned();
+    renderShop();
+  }catch(e){ showToast('error','Gagal memuat data properti'); }
+}
+
+function renderOwned(){
+  const el=document.getElementById('owned-list');
+  const props=status.properties||[];
+  if(!props.length){ el.innerHTML='<div class="alert alert-info">Belum punya properti. Beli di Pasar Properti!</div>'; return; }
+  el.innerHTML=`
+  <div class="owned-grid">
+    ${props.map(key=>{
+      const p=PROPS[key]||{};
+      return `
+      <div class="owned-row">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:30px">${p.icon||'🏢'}</span>
+          <div>
+            <div style="font-weight:700">${p.name||key}</div>
+            <div style="font-size:12px;color:var(--text-secondary)">Tier ${p.tier||1}: ${TIER_LABEL[p.tier||1]}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;color:var(--accent-green)">+Rp${fmt(p.income||0)}/jam</div>
+          <div style="font-size:11px;color:var(--text-secondary)">Cap: Rp${fmt(p.cap||0)}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderShop(){
+  const el=document.getElementById('prop-shop-grid');
+  const owned=status.properties||[];
+  el.innerHTML=Object.entries(PROPS).map(([key,p])=>{
+    const isOwned=owned.includes(key);
+    const roiHours=Math.ceil(p.harga/p.income);
+    return `
+    <div class="prop-card ${isOwned?'owned':''}">
+      <span class="prop-tier ${TIER_CLASS[p.tier]}">${TIER_LABEL[p.tier]}</span>
+      <div class="prop-icon">${p.icon}</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px">${p.name}</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px">
+        💰 Harga: <b>Rp${fmt(p.harga)}</b><br>
+        💵 Income: <b>Rp${fmt(p.income)}/jam</b><br>
+        🏦 Cap: <b>Rp${fmt(p.cap)}</b><br>
+        ⏱️ ROI: <b>~${roiHours} jam</b>
+      </div>
+      ${isOwned
+        ? `<div style="text-align:center;padding:8px;background:rgba(57,197,87,.1);border-radius:8px;color:var(--accent-green);font-weight:700">✅ Sudah Dimiliki</div>`
+        : `<button class="btn btn-primary btn-block btn-sm" onclick="beli('${key}')">🛒 Beli</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function collectIncome(){
+  const btn=document.getElementById('btn-collect');
+  btn.disabled=true; btn.textContent='⏳ Mengklaim...';
+  try{
+    const r=await api.post('/features/property/collect',{});
+    showToast('success',r.message); load();
+  }catch(e){ showToast('error',e.message||'Gagal klaim'); }
+  finally{ btn.disabled=false; btn.textContent='💰 Klaim Pendapatan'; }
+}
+
+async function beli(property){
+  const p=PROPS[property];
+  if(!confirm(`Beli ${p.name} seharga Rp${fmtFull(p.harga)}?`)) return;
+  try{
+    const r=await api.post('/features/property/beli',{property});
+    showToast('success',r.message); load();
+  }catch(e){ showToast('error',e.message||'Gagal beli'); }
+}
+
+function switchTab(tab){
+  ['milik','toko'].forEach(t=>{ document.getElementById(`tab-${t}`).classList.toggle('hidden',t!==tab); });
+  document.querySelectorAll('.tab').forEach((el,i)=>{ el.classList.toggle('active',['milik','toko'][i]===tab); });
+}
+
+const ME=getUser();
+if(ME){
+  document.getElementById('sidebar-username').textContent=ME.username;
+  document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();
+  document.getElementById('sidebar-role').textContent=ME.role||'user';
+  if(ME.role==='admin'||ME.role==='developer') document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('hidden'));
+}
+load();
+setInterval(load,30000);
+</script>
+</body>
+</html>

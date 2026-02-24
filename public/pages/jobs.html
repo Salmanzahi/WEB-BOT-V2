@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AlgojoGacor</title>
+<link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css"></head>
+<body><div class="app-layout">
+<aside class="sidebar" id="sidebar"><div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div></div></div>
+<nav class="sidebar-nav"><a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></nav>
+<div class="sidebar-footer"><div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div><div><div class="user-name" id="sidebar-username">Loading...</div></div></div>
+<button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button></div></aside>
+<div class="main-content"><header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger" onclick="toggleSidebar()">☰</button>
+<span class="topbar-title" id="page-title">Fitur</span></div></header>
+<main class="content-area"><div class="card" style="text-align:center;padding:40px">
+<div style="font-size:60px;margin-bottom:16px">🚧</div>
+<h2>Halaman ini siap dikembangkan</h2>
+<p style="color:var(--text-secondary);margin:12px 0">Tambahkan logika di <code>controllers/features/</code> dan isi halaman HTML ini sesuai kebutuhan.</p>
+<a href="/dashboard.html" class="btn btn-primary">← Kembali ke Dashboard</a>
+</div></main></div></div>
+<div id="toast-container"></div><script src="/js/api.js"></script>
+<script>
+const ME=getUser(); if(ME){document.getElementById('sidebar-username').textContent=ME.username;document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();}
+document.getElementById('page-title').textContent=document.title.split('—')[1]?.trim()||'Fitur';
+</script></body></html>
