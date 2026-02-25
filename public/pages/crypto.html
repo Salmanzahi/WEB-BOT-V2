@@ -2,11 +2,371 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AlgojoGacor — Crypto</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AlgojoGacor — Crypto Trading</title>
+    <meta
+      name="description"
+      content="Real-time cryptocurrency trading with live market data from CoinGecko"
+    />
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/dashboard.css" />
-    <script src="/js/api.js"></script>
+    <style>
+      /* ── Crypto Page Styles ───────────────────────────────── */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 0;
+      }
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-secondary);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+      }
+      .tab.active {
+        color: var(--accent-green);
+        border-bottom-color: var(--accent-green);
+        background: rgba(0, 212, 170, 0.08);
+      }
+      .tab:hover:not(.active) {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+      }
+
+      /* Market Table */
+      .market-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .market-table th {
+        padding: 10px 14px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-weight: 700;
+      }
+      .market-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(42, 42, 74, 0.5);
+        transition: background 0.15s;
+      }
+      .market-table tr:hover td {
+        background: var(--bg-hover);
+      }
+      .market-table .coin-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .market-table .coin-icon {
+        font-size: 24px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-hover);
+        border-radius: 50%;
+      }
+      .market-table .coin-ticker {
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      .market-table .coin-name {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: capitalize;
+      }
+      .price-val {
+        font-weight: 700;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      .change-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .change-up {
+        background: rgba(0, 212, 170, 0.12);
+        color: var(--accent-green);
+      }
+      .change-down {
+        background: rgba(233, 69, 96, 0.12);
+        color: var(--accent);
+      }
+      .action-btn-group {
+        display: flex;
+        gap: 6px;
+      }
+      .action-btn {
+        padding: 5px 12px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+        transition: all 0.15s;
+      }
+      .action-btn.buy {
+        background: rgba(0, 212, 170, 0.15);
+        color: var(--accent-green);
+        border: 1px solid rgba(0, 212, 170, 0.3);
+      }
+      .action-btn.buy:hover {
+        background: rgba(0, 212, 170, 0.3);
+      }
+      .action-btn.sell {
+        background: rgba(233, 69, 96, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(233, 69, 96, 0.3);
+      }
+      .action-btn.sell:hover {
+        background: rgba(233, 69, 96, 0.3);
+      }
+
+      /* Last updated pulse */
+      .last-update {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-green);
+        animation: livePulse 2s infinite;
+      }
+      @keyframes livePulse {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+        }
+        50% {
+          opacity: 0.7;
+          box-shadow: 0 0 0 6px rgba(0, 212, 170, 0);
+        }
+      }
+
+      /* Portfolio cards */
+      .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+      .holding-card {
+        background: var(--bg-hover);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        transition: border-color 0.2s;
+      }
+      .holding-card:hover {
+        border-color: var(--accent-green);
+      }
+      .holding-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .holding-coin {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .holding-coin .h-icon {
+        font-size: 20px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-secondary);
+        border-radius: 50%;
+      }
+      .holding-coin .h-ticker {
+        font-weight: 700;
+        font-size: 15px;
+        text-transform: uppercase;
+      }
+      .holding-amount {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .holding-value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--accent-green);
+        margin-top: 4px;
+      }
+      .holding-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        line-height: 1.8;
+      }
+
+      /* Trade form */
+      .trade-form {
+        max-width: 480px;
+      }
+      .trade-form .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .trade-form .form-row > * {
+        flex: 1;
+      }
+      .trade-form select {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 14px;
+        outline: none;
+      }
+      .trade-form select:focus {
+        border-color: var(--accent);
+      }
+      .quick-amounts {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .quick-amt {
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--bg-hover);
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.15s;
+      }
+      .quick-amt:hover {
+        border-color: var(--accent-green);
+        color: var(--accent-green);
+      }
+
+      /* Debt meter */
+      .debt-meter {
+        background: rgba(233, 69, 96, 0.08);
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+      }
+      .debt-meter .debt-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .debt-meter .debt-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      /* Net worth summary */
+      .net-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .net-item {
+        text-align: center;
+        padding: 14px;
+        background: var(--bg-hover);
+        border-radius: 8px;
+      }
+      .net-item .net-val {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 2px;
+      }
+      .net-item .net-lbl {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state .empty-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.5;
+      }
+      .empty-state .empty-text {
+        font-size: 14px;
+      }
+
+      /* Coin icons mapping */
+      .coin-emoji-btc::before {
+        content: "₿";
+      }
+      .coin-emoji-eth::before {
+        content: "⟠";
+      }
+      .coin-emoji-sol::before {
+        content: "◎";
+      }
+      .coin-emoji-bnb::before {
+        content: "🔶";
+      }
+      .coin-emoji-doge::before {
+        content: "🐕";
+      }
+      .coin-emoji-pepe::before {
+        content: "🐸";
+      }
+      .coin-emoji-shib::before {
+        content: "🦊";
+      }
+      .coin-emoji-xrp::before {
+        content: "✕";
+      }
+      .coin-emoji-ada::before {
+        content: "🔵";
+      }
+      .coin-emoji-trx::before {
+        content: "🔻";
+      }
+    </style>
   </head>
   <body>
     <div class="app-layout">
@@ -18,25 +378,333 @@
         <header class="topbar">
           <div style="display: flex; align-items: center; gap: 12px">
             <button class="hamburger" onclick="toggleSidebar()">☰</button>
-            <span class="topbar-title">Crypto</span>
+            <span class="topbar-title">₿ Crypto Trading</span>
           </div>
-          <div style="font-size: 13px; color: var(--text-secondary)">
-            Saldo:
-            <span
-              id="top-balance"
-              style="font-weight: 700; color: var(--accent-green)"
-              >...</span
-            >
+          <div style="display: flex; align-items: center; gap: 16px">
+            <div class="last-update">
+              <span class="live-dot"></span>
+              <span id="last-update-text">Memuat...</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary)">
+              Saldo:
+              <span
+                id="top-balance"
+                style="font-weight: 700; color: var(--accent-green)"
+                >...</span
+              >
+            </div>
           </div>
         </header>
 
         <main class="content-area">
-          <div class="card">
-            <div class="card-header">
-              <span class="icon">₿</span>
-              <h3>Crypto Dashboard</h3>
+          <!-- Stats -->
+          <div class="status-grid" style="margin-bottom: 20px">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-balance">...</div>
+              <div class="stat-label">💰 Saldo</div>
             </div>
-            <p style="color: var(--text-secondary)">.</p>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-asset">...</div>
+              <div class="stat-label">📊 Aset Crypto</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-debt">Rp 0</div>
+              <div class="stat-label">⚠️ Hutang Margin</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-networth">...</div>
+              <div class="stat-label">🏦 Net Worth</div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <div
+              class="tab active"
+              onclick="switchTab('market')"
+              id="tab-btn-market"
+            >
+              📡 Market
+            </div>
+            <div class="tab" onclick="switchTab('buy')" id="tab-btn-buy">
+              🟢 Beli
+            </div>
+            <div class="tab" onclick="switchTab('sell')" id="tab-btn-sell">
+              🔴 Jual
+            </div>
+            <div class="tab" onclick="switchTab('margin')" id="tab-btn-margin">
+              ⚡ Margin
+            </div>
+            <div
+              class="tab"
+              onclick="switchTab('portfolio')"
+              id="tab-btn-portfolio"
+            >
+              💼 Portfolio
+            </div>
+          </div>
+
+          <!-- TAB: MARKET -->
+          <div id="tab-market">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">📡</span>
+                <h3>Real-Time Crypto Market</h3>
+                <span
+                  style="
+                    margin-left: auto;
+                    font-size: 11px;
+                    color: var(--text-muted);
+                  "
+                  >Powered by CoinGecko</span
+                >
+              </div>
+              <div class="table-wrapper">
+                <table class="market-table" id="market-table">
+                  <thead>
+                    <tr>
+                      <th>Koin</th>
+                      <th>Harga (IDR)</th>
+                      <th>24h</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="market-tbody">
+                    <tr>
+                      <td
+                        colspan="4"
+                        style="
+                          text-align: center;
+                          padding: 30px;
+                          color: var(--text-muted);
+                        "
+                      >
+                        <div class="spinner"></div>
+                        Memuat data market...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: BUY -->
+          <div id="tab-buy" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">🟢</span>
+                <h3>Beli Crypto</h3>
+              </div>
+              <div class="trade-form">
+                <div class="form-group">
+                  <label>Pilih Koin</label>
+                  <select id="buy-coin"></select>
+                </div>
+                <div class="form-group">
+                  <label>Jumlah (Rp) — Fee 0.1%</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="buy-amount"
+                    placeholder="Min. 10.000"
+                    min="10000"
+                  />
+                </div>
+                <div class="quick-amounts">
+                  <button class="quick-amt" onclick="setAmount('buy', 50000)">
+                    50rb
+                  </button>
+                  <button class="quick-amt" onclick="setAmount('buy', 100000)">
+                    100rb
+                  </button>
+                  <button class="quick-amt" onclick="setAmount('buy', 500000)">
+                    500rb
+                  </button>
+                  <button class="quick-amt" onclick="setAmount('buy', 1000000)">
+                    1jt
+                  </button>
+                  <button class="quick-amt" onclick="setAmount('buy', 5000000)">
+                    5jt
+                  </button>
+                  <button class="quick-amt" onclick="setAmount('buy', 'all')">
+                    ALL IN
+                  </button>
+                </div>
+                <div
+                  id="buy-preview"
+                  style="
+                    font-size: 12px;
+                    color: var(--text-secondary);
+                    margin-bottom: 14px;
+                  "
+                ></div>
+                <button
+                  class="btn btn-success btn-block"
+                  id="btn-buy"
+                  onclick="doBuy()"
+                >
+                  🟢 Beli Sekarang
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: SELL -->
+          <div id="tab-sell" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">🔴</span>
+                <h3>Jual Crypto</h3>
+              </div>
+              <div class="trade-form">
+                <div class="form-group">
+                  <label>Pilih Koin (dari portofolio)</label>
+                  <select id="sell-coin"></select>
+                </div>
+                <div class="form-group">
+                  <label>Jumlah Koin</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="sell-amount"
+                    placeholder="Jumlah koin atau 'all'"
+                  />
+                </div>
+                <div class="quick-amounts">
+                  <button class="quick-amt" onclick="setSellPct(25)">
+                    25%
+                  </button>
+                  <button class="quick-amt" onclick="setSellPct(50)">
+                    50%
+                  </button>
+                  <button class="quick-amt" onclick="setSellPct(75)">
+                    75%
+                  </button>
+                  <button class="quick-amt" onclick="setSellPct(100)">
+                    100%
+                  </button>
+                </div>
+                <div
+                  id="sell-preview"
+                  style="
+                    font-size: 12px;
+                    color: var(--text-secondary);
+                    margin-bottom: 14px;
+                  "
+                ></div>
+                <button
+                  class="btn btn-danger btn-block"
+                  id="btn-sell"
+                  onclick="doSell()"
+                >
+                  🔴 Jual Sekarang
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: MARGIN -->
+          <div id="tab-margin" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">⚡</span>
+                <h3>Margin Buy (Leverage 3x)</h3>
+              </div>
+              <div class="alert alert-warning">
+                ⚠️ RISIKO TINGGI — Jika harga turun drastis, semua aset crypto &
+                saldo akan disita (likuidasi otomatis saat hutang > 85%
+                collateral).
+              </div>
+              <div class="trade-form">
+                <div class="form-group">
+                  <label>Pilih Koin</label>
+                  <select id="margin-coin"></select>
+                </div>
+                <div class="form-group">
+                  <label>Jumlah Pinjaman (Rp) — Min Rp 100.000</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="margin-amount"
+                    placeholder="Min. 100.000"
+                    min="100000"
+                  />
+                </div>
+                <div
+                  id="margin-preview"
+                  style="
+                    font-size: 12px;
+                    color: var(--text-secondary);
+                    margin-bottom: 14px;
+                  "
+                ></div>
+                <button
+                  class="btn btn-primary btn-block"
+                  id="btn-margin"
+                  onclick="doMargin()"
+                >
+                  ⚡ Margin Buy
+                </button>
+              </div>
+              <div class="debt-meter" id="debt-meter" style="display: none">
+                <div>
+                  <div class="debt-label">Total Hutang</div>
+                  <div class="debt-value" id="debt-display">Rp 0</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="doPayDebt()">
+                  💳 Bayar Hutang
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: PORTFOLIO -->
+          <div id="tab-portfolio" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">💼</span>
+                <h3>Portofolio Crypto</h3>
+              </div>
+              <div class="net-summary" id="porto-summary">
+                <div class="net-item">
+                  <div class="net-val positive" id="porto-asset">Rp 0</div>
+                  <div class="net-lbl">Aset Crypto</div>
+                </div>
+                <div class="net-item">
+                  <div
+                    class="net-val"
+                    style="color: var(--accent-yellow)"
+                    id="porto-cash"
+                  >
+                    Rp 0
+                  </div>
+                  <div class="net-lbl">Tunai</div>
+                </div>
+                <div class="net-item">
+                  <div class="net-val negative" id="porto-debt">Rp 0</div>
+                  <div class="net-lbl">Hutang</div>
+                </div>
+                <div class="net-item">
+                  <div
+                    class="net-val"
+                    style="color: var(--accent-blue)"
+                    id="porto-net"
+                  >
+                    Rp 0
+                  </div>
+                  <div class="net-lbl">Net Worth</div>
+                </div>
+              </div>
+              <div class="portfolio-grid" id="portfolio-grid">
+                <div class="empty-state">
+                  <div class="empty-icon">💼</div>
+                  <div class="empty-text">
+                    Portofolio kosong. Mulai beli crypto!
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>
@@ -45,5 +713,6 @@
     <div id="toast-container"></div>
     <script src="/js/api.js"></script>
     <script src="/component/sidebarFetch.js"></script>
+    <script src="/js/cryptoHandler.js"></script>
   </body>
 </html>

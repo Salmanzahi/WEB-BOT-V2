@@ -1,220 +1,598 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AlgojoGacor — Farming</title>
-<link rel="stylesheet" href="/css/main.css">
-<link rel="stylesheet" href="/css/dashboard.css">
-<style>
-.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
-.tab{padding:10px 20px;cursor:pointer;border-radius:8px 8px 0 0;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
-.tab.active{color:var(--accent-green);border-bottom-color:var(--accent-green);background:rgba(57,197,87,.08)}
-.crop-grid,.machine-grid,.proc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:16px}
-.crop-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .2s}
-.crop-card:hover{border-color:var(--accent-green)}
-.crop-icon{font-size:40px;text-align:center;margin-bottom:8px}
-.crop-name{font-weight:700;font-size:16px;margin-bottom:4px}
-.crop-meta{font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6}
-.crop-timer{font-size:13px;font-weight:600;color:var(--accent-green);margin-bottom:8px}
-.crop-timer.ready{color:#ff9f43;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
-.qty-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.qty-input{width:70px;text-align:center;padding:6px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px}
-.badge-owned{background:#27ae60;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700}
-.badge-req{background:#e74c3c;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px}
-.harvest-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--hover-bg);border-radius:8px;margin-bottom:8px}
-.harvest-timer{font-size:12px;font-weight:700}
-.harvest-timer.ready{color:#ff9f43}
-.harvest-timer.waiting{color:var(--text-secondary)}
-.inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-.inv-card{background:var(--hover-bg);border-radius:10px;padding:12px;text-align:center}
-.inv-icon{font-size:30px;margin-bottom:4px}
-.inv-name{font-size:12px;font-weight:600}
-.inv-qty{font-size:20px;font-weight:800;color:var(--accent-green)}
-.market-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--hover-bg);border-radius:8px;margin-bottom:8px}
-</style>
-</head>
-<body>
-<div class="app-layout">
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div><div class="logo-sub">Web Platform</div></div></div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Utama</div>
-    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
-    <a class="nav-item" href="/pages/profile.html"><span class="nav-icon">👤</span> Profil & Status</a>
-    <a class="nav-item" href="/chat.html"><span class="nav-icon">💬</span> Live Chat</a>
-    <div class="nav-section">Kehidupan & Ekonomi</div>
-    <a class="nav-item" href="/pages/economy.html"><span class="nav-icon">💰</span> Ekonomi & Bank</a>
-    <a class="nav-item" href="/pages/jobs.html"><span class="nav-icon">💼</span> Pekerjaan</a>
-    <a class="nav-item" href="/pages/life.html"><span class="nav-icon">❤️</span> Survival</a>
-    <div class="nav-section">Games</div>
-    <a class="nav-item" href="/pages/games.html"><span class="nav-icon">🎮</span> Casino & Games</a>
-    <a class="nav-item" href="/pages/minigames.html"><span class="nav-icon">🎲</span> Mini Games</a>
-    <div class="nav-section">Bisnis</div>
-    <a class="nav-item active" href="/pages/farming.html"><span class="nav-icon">🌾</span> Farming</a>
-    <a class="nav-item" href="/pages/ternak.html"><span class="nav-icon">🐄</span> Peternakan</a>
-    <a class="nav-item" href="/pages/mining.html"><span class="nav-icon">⛏️</span> Mining</a>
-    <a class="nav-item" href="/pages/property.html"><span class="nav-icon">🏢</span> Properti</a>
-    <div class="nav-section">AI & Tools</div>
-    <a class="nav-item" href="/pages/ai.html"><span class="nav-icon">🤖</span> AI Chat</a>
-    <a class="nav-item" href="/pages/tools.html"><span class="nav-icon">🛠️</span> Tools & Utilitas</a>
-    <a class="nav-item" href="/pages/leaderboard.html"><span class="nav-icon">🏆</span> Leaderboard</a>
-    <div class="nav-section admin-only hidden">Admin</div>
-    <a class="nav-item admin-only hidden" href="/pages/admin.html"><span class="nav-icon">⚙️</span> Panel Admin</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div>
-    <div><div class="user-name" id="sidebar-username">Loading...</div><div class="user-role" id="sidebar-role">—</div></div></div>
-    <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button>
-  </div>
-</aside>
-
-<!-- Main -->
-<div class="main-content">
-<header class="topbar">
-  <div style="display:flex;align-items:center;gap:12px">
-    <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="topbar-title">🌾 Farming & Industri</span>
-  </div>
-  <div style="font-size:13px;color:var(--text-secondary)">Saldo: <span id="top-balance" style="font-weight:700;color:var(--accent-green)">...</span></div>
-</header>
-
-<main class="content-area">
-  <!-- Stats -->
-  <div class="status-grid" style="margin-bottom:20px">
-    <div class="stat-card"><div class="stat-value" id="stat-crops">0</div><div class="stat-label">🌱 Tanaman Aktif</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-ready">0</div><div class="stat-label">🌾 Siap Panen</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-machines">0</div><div class="stat-label">⚙️ Mesin Dimiliki</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-balance">...</div><div class="stat-label">💰 Saldo</div></div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('ladang')">🌱 Ladang</div>
-    <div class="tab" onclick="switchTab('toko-mesin')">⚙️ Toko Mesin</div>
-    <div class="tab" onclick="switchTab('pabrik')">🏭 Pabrik Olah</div>
-    <div class="tab" onclick="switchTab('pasar')">📊 Harga Pasar</div>
-  </div>
-
-  <!-- TAB: LADANG -->
-  <div id="tab-ladang">
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-header"><span class="icon">🌱</span><h3>Tanam Baru</h3></div>
-      <div class="crop-grid" id="crop-shop-grid">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="icon">🌾</span><h3>Ladang Saya</h3>
-        <button class="btn btn-primary btn-sm" onclick="panenSemua()" style="margin-left:auto">🌾 Panen Semua</button>
-      </div>
-      <div id="ladang-list"><div class="alert alert-info">Ladang kosong. Mulai tanam sekarang!</div></div>
-    </div>
-  </div>
-
-  <!-- TAB: TOKO MESIN -->
-  <div id="tab-toko-mesin" class="hidden">
-    <div class="card">
-      <div class="card-header"><span class="icon">⚙️</span><h3>Toko Mesin Industri</h3></div>
-      <div class="machine-grid" id="machine-shop-grid">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: PABRIK OLAH -->
-  <div id="tab-pabrik" class="hidden">
-    <div class="card">
-      <div class="card-header"><span class="icon">🏭</span><h3>Proses Hasil Tani → Produk Olahan</h3></div>
-      <p style="color:var(--text-secondary);margin-bottom:16px;font-size:13px">Butuh mesin & hasil panen mentah. Produk olahan dijual jauh lebih mahal!</p>
-      <div class="proc-grid" id="proc-grid">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: PASAR -->
-  <div id="tab-pasar" class="hidden">
-    <div class="card">
-      <div class="card-header"><span class="icon">📊</span><h3>Harga Pasar Komoditas</h3></div>
-      <div id="market-list">
-        <div class="market-row"><span>🌾 Padi</span><span style="font-weight:700;color:var(--accent-green)">Rp 2.300.000 - 2.500.000</span></div>
-        <div class="market-row"><span>🌽 Jagung</span><span style="font-weight:700;color:var(--accent-green)">Rp 6.000.000 - 7.000.000</span></div>
-        <div class="market-row"><span>🧅 Bawang</span><span style="font-weight:700;color:var(--accent-green)">Rp 13.000.000 - 15.000.000</span></div>
-        <div class="market-row"><span>☕ Kopi</span><span style="font-weight:700;color:var(--accent-green)">Rp 32.000.000 - 38.000.000</span></div>
-        <div class="market-row"><span>🌴 Sawit</span><span style="font-weight:700;color:var(--accent-green)">Rp 75.000.000 - 90.000.000</span></div>
-        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-          <h4 style="margin-bottom:12px">🏭 Produk Olahan</h4>
-          <div class="market-row"><span>🍚 Beras Premium</span><span style="font-weight:700;color:var(--accent-purple)">Rp 6.000.000/unit</span></div>
-          <div class="market-row"><span>🍿 Popcorn Karamel</span><span style="font-weight:700;color:var(--accent-purple)">Rp 18.000.000/unit</span></div>
-          <div class="market-row"><span>🥘 Bawang Goreng</span><span style="font-weight:700;color:var(--accent-purple)">Rp 40.000.000/unit</span></div>
-          <div class="market-row"><span>☕ Kopi Bubuk</span><span style="font-weight:700;color:var(--accent-purple)">Rp 100.000.000/unit</span></div>
-          <div class="market-row"><span>🛢️ Minyak Goreng</span><span style="font-weight:700;color:var(--accent-purple)">Rp 250.000.000/unit</span></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AlgojoGacor — Farming</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <style>
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 0;
+      }
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-secondary);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+      }
+      .tab.active {
+        color: var(--accent-green);
+        border-bottom-color: var(--accent-green);
+        background: rgba(57, 197, 87, 0.08);
+      }
+      .crop-grid,
+      .machine-grid,
+      .proc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .crop-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        transition: border-color 0.2s;
+      }
+      .crop-card:hover {
+        border-color: var(--accent-green);
+      }
+      .crop-icon {
+        font-size: 40px;
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .crop-name {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+      .crop-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        line-height: 1.6;
+      }
+      .crop-timer {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent-green);
+        margin-bottom: 8px;
+      }
+      .crop-timer.ready {
+        color: #ff9f43;
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+      .qty-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .qty-input {
+        width: 70px;
+        text-align: center;
+        padding: 6px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+      .badge-owned {
+        background: #27ae60;
+        color: #fff;
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .badge-req {
+        background: #e74c3c;
+        color: #fff;
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 11px;
+      }
+      .harvest-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: var(--hover-bg);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .harvest-timer {
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .harvest-timer.ready {
+        color: #ff9f43;
+      }
+      .harvest-timer.waiting {
+        color: var(--text-secondary);
+      }
+      .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .inv-card {
+        background: var(--hover-bg);
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+      }
+      .inv-icon {
+        font-size: 30px;
+        margin-bottom: 4px;
+      }
+      .inv-name {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .inv-qty {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--accent-green);
+      }
+      .market-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: var(--hover-bg);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <span class="logo-icon">⚔️</span>
+          <div>
+            <div class="logo-text">AlgojoGacor</div>
+            <div class="logo-sub">Web Platform</div>
+          </div>
         </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section">Utama</div>
+          <a class="nav-item" href="/dashboard.html"
+            ><span class="nav-icon">🏠</span> Dashboard</a
+          >
+          <a class="nav-item" href="/pages/profile.html"
+            ><span class="nav-icon">👤</span> Profil & Status</a
+          >
+          <a class="nav-item" href="/chat.html"
+            ><span class="nav-icon">💬</span> Live Chat</a
+          >
+          <div class="nav-section">Kehidupan & Ekonomi</div>
+          <a class="nav-item" href="/pages/economy.html"
+            ><span class="nav-icon">💰</span> Ekonomi & Bank</a
+          >
+          <a class="nav-item" href="/pages/jobs.html"
+            ><span class="nav-icon">💼</span> Pekerjaan</a
+          >
+          <a class="nav-item" href="/pages/life.html"
+            ><span class="nav-icon">❤️</span> Survival</a
+          >
+          <div class="nav-section">Games</div>
+          <a class="nav-item" href="/pages/games.html"
+            ><span class="nav-icon">🎮</span> Casino & Games</a
+          >
+          <a class="nav-item" href="/pages/minigames.html"
+            ><span class="nav-icon">🎲</span> Mini Games</a
+          >
+          <div class="nav-section">Bisnis</div>
+          <a class="nav-item active" href="/pages/farming.html"
+            ><span class="nav-icon">🌾</span> Farming</a
+          >
+          <a class="nav-item" href="/pages/ternak.html"
+            ><span class="nav-icon">🐄</span> Peternakan</a
+          >
+          <a class="nav-item" href="/pages/mining.html"
+            ><span class="nav-icon">⛏️</span> Mining</a
+          >
+          <a class="nav-item" href="/pages/property.html"
+            ><span class="nav-icon">🏢</span> Properti</a
+          >
+          <div class="nav-section">AI & Tools</div>
+          <a class="nav-item" href="/pages/ai.html"
+            ><span class="nav-icon">🤖</span> AI Chat</a
+          >
+          <a class="nav-item" href="/pages/tools.html"
+            ><span class="nav-icon">🛠️</span> Tools & Utilitas</a
+          >
+          <a class="nav-item" href="/pages/leaderboard.html"
+            ><span class="nav-icon">🏆</span> Leaderboard</a
+          >
+          <div class="nav-section admin-only hidden">Admin</div>
+          <a class="nav-item admin-only hidden" href="/pages/admin.html"
+            ><span class="nav-icon">⚙️</span> Panel Admin</a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar" id="sidebar-avatar">?</div>
+            <div>
+              <div class="user-name" id="sidebar-username">Loading...</div>
+              <div class="user-role" id="sidebar-role">—</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">
+            🚪 Logout
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="main-content">
+        <header class="topbar">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button class="hamburger" onclick="toggleSidebar()">☰</button>
+            <span class="topbar-title">🌾 Farming & Industri</span>
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary)">
+            Saldo:
+            <span
+              id="top-balance"
+              style="font-weight: 700; color: var(--accent-green)"
+              >...</span
+            >
+          </div>
+        </header>
+
+        <main class="content-area">
+          <!-- Stats -->
+          <div class="status-grid" style="margin-bottom: 20px">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-crops">0</div>
+              <div class="stat-label">🌱 Tanaman Aktif</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-ready">0</div>
+              <div class="stat-label">🌾 Siap Panen</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-machines">0</div>
+              <div class="stat-label">⚙️ Mesin Dimiliki</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-balance">...</div>
+              <div class="stat-label">💰 Saldo</div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab('ladang')">
+              🌱 Ladang
+            </div>
+            <div class="tab" onclick="switchTab('toko-mesin')">
+              ⚙️ Toko Mesin
+            </div>
+            <div class="tab" onclick="switchTab('pabrik')">🏭 Pabrik Olah</div>
+            <div class="tab" onclick="switchTab('pasar')">📊 Harga Pasar</div>
+          </div>
+
+          <!-- TAB: LADANG -->
+          <div id="tab-ladang">
+            <div class="card" style="margin-bottom: 20px">
+              <div class="card-header">
+                <span class="icon">🌱</span>
+                <h3>Tanam Baru</h3>
+              </div>
+              <div class="crop-grid" id="crop-shop-grid">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">🌾</span>
+                <h3>Ladang Saya</h3>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="panenSemua()"
+                  style="margin-left: auto"
+                >
+                  🌾 Panen Semua
+                </button>
+              </div>
+              <div id="ladang-list">
+                <div class="alert alert-info">
+                  Ladang kosong. Mulai tanam sekarang!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: TOKO MESIN -->
+          <div id="tab-toko-mesin" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">⚙️</span>
+                <h3>Toko Mesin Industri</h3>
+              </div>
+              <div class="machine-grid" id="machine-shop-grid">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: PABRIK OLAH -->
+          <div id="tab-pabrik" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">🏭</span>
+                <h3>Proses Hasil Tani → Produk Olahan</h3>
+              </div>
+              <p
+                style="
+                  color: var(--text-secondary);
+                  margin-bottom: 16px;
+                  font-size: 13px;
+                "
+              >
+                Butuh mesin & hasil panen mentah. Produk olahan dijual jauh
+                lebih mahal!
+              </p>
+              <div class="proc-grid" id="proc-grid">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: PASAR -->
+          <div id="tab-pasar" class="hidden">
+            <div class="card">
+              <div class="card-header">
+                <span class="icon">📊</span>
+                <h3>Harga Pasar Komoditas</h3>
+              </div>
+              <div id="market-list">
+                <div class="market-row">
+                  <span>🌾 Padi</span
+                  ><span style="font-weight: 700; color: var(--accent-green)"
+                    >Rp 2.300.000 - 2.500.000</span
+                  >
+                </div>
+                <div class="market-row">
+                  <span>🌽 Jagung</span
+                  ><span style="font-weight: 700; color: var(--accent-green)"
+                    >Rp 6.000.000 - 7.000.000</span
+                  >
+                </div>
+                <div class="market-row">
+                  <span>🧅 Bawang</span
+                  ><span style="font-weight: 700; color: var(--accent-green)"
+                    >Rp 13.000.000 - 15.000.000</span
+                  >
+                </div>
+                <div class="market-row">
+                  <span>☕ Kopi</span
+                  ><span style="font-weight: 700; color: var(--accent-green)"
+                    >Rp 32.000.000 - 38.000.000</span
+                  >
+                </div>
+                <div class="market-row">
+                  <span>🌴 Sawit</span
+                  ><span style="font-weight: 700; color: var(--accent-green)"
+                    >Rp 75.000.000 - 90.000.000</span
+                  >
+                </div>
+                <div
+                  style="
+                    margin-top: 16px;
+                    border-top: 1px solid var(--border);
+                    padding-top: 16px;
+                  "
+                >
+                  <h4 style="margin-bottom: 12px">🏭 Produk Olahan</h4>
+                  <div class="market-row">
+                    <span>🍚 Beras Premium</span
+                    ><span style="font-weight: 700; color: var(--accent-purple)"
+                      >Rp 6.000.000/unit</span
+                    >
+                  </div>
+                  <div class="market-row">
+                    <span>🍿 Popcorn Karamel</span
+                    ><span style="font-weight: 700; color: var(--accent-purple)"
+                      >Rp 18.000.000/unit</span
+                    >
+                  </div>
+                  <div class="market-row">
+                    <span>🥘 Bawang Goreng</span
+                    ><span style="font-weight: 700; color: var(--accent-purple)"
+                      >Rp 40.000.000/unit</span
+                    >
+                  </div>
+                  <div class="market-row">
+                    <span>☕ Kopi Bubuk</span
+                    ><span style="font-weight: 700; color: var(--accent-purple)"
+                      >Rp 100.000.000/unit</span
+                    >
+                  </div>
+                  <div class="market-row">
+                    <span>🛢️ Minyak Goreng</span
+                    ><span style="font-weight: 700; color: var(--accent-purple)"
+                      >Rp 250.000.000/unit</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
-  </div>
-</main>
-</div>
-</div>
 
-<div id="toast-container"></div>
-<script src="/js/api.js"></script>
-<script>
-const CROPS_DATA = {
-  padi:   { icon:'🌾', name:'Padi',   modal:2300000, jual:4600000, durasi:4,  label:'4 jam' },
-  jagung: { icon:'🌽', name:'Jagung', modal:6500000, jual:13000000,durasi:2,  label:'2 jam' },
-  bawang: { icon:'🧅', name:'Bawang', modal:14000000,jual:28000000,durasi:6,  label:'6 jam' },
-  kopi:   { icon:'☕', name:'Kopi',   modal:35000000,jual:70000000,durasi:12, label:'12 jam' },
-  sawit:  { icon:'🌴', name:'Sawit',  modal:80000000,jual:160000000,durasi:24,label:'24 jam' },
-};
-const MACHINES_DATA = {
-  gilingan:     { icon:'🌾', name:'Rice Mill',          bahan:'padi',   output:'beras',        harga:50000000,  sell:6000000 },
-  popcorn_maker:{ icon:'🍿', name:'Popcorn Maker',      bahan:'jagung', output:'popcorn',      harga:80000000,  sell:18000000 },
-  penggorengan: { icon:'🥘', name:'Fried Onion Machine',bahan:'bawang', output:'bawang_goreng',harga:150000000, sell:40000000 },
-  roaster:      { icon:'☕', name:'Coffee Roaster',     bahan:'kopi',   output:'kopi_bubuk',   harga:300000000, sell:100000000 },
-  penyulingan:  { icon:'🛢️', name:'CPO Refinery',      bahan:'sawit',  output:'minyak',       harga:1000000000,sell:250000000 },
-};
+    <div id="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const CROPS_DATA = {
+        padi: {
+          icon: "🌾",
+          name: "Padi",
+          modal: 2300000,
+          jual: 4600000,
+          durasi: 4,
+          label: "4 jam",
+        },
+        jagung: {
+          icon: "🌽",
+          name: "Jagung",
+          modal: 6500000,
+          jual: 13000000,
+          durasi: 2,
+          label: "2 jam",
+        },
+        bawang: {
+          icon: "🧅",
+          name: "Bawang",
+          modal: 14000000,
+          jual: 28000000,
+          durasi: 6,
+          label: "6 jam",
+        },
+        kopi: {
+          icon: "☕",
+          name: "Kopi",
+          modal: 35000000,
+          jual: 70000000,
+          durasi: 12,
+          label: "12 jam",
+        },
+        sawit: {
+          icon: "🌴",
+          name: "Sawit",
+          modal: 80000000,
+          jual: 160000000,
+          durasi: 24,
+          label: "24 jam",
+        },
+      };
+      const MACHINES_DATA = {
+        gilingan: {
+          icon: "🌾",
+          name: "Rice Mill",
+          bahan: "padi",
+          output: "beras",
+          harga: 50000000,
+          sell: 6000000,
+        },
+        popcorn_maker: {
+          icon: "🍿",
+          name: "Popcorn Maker",
+          bahan: "jagung",
+          output: "popcorn",
+          harga: 80000000,
+          sell: 18000000,
+        },
+        penggorengan: {
+          icon: "🥘",
+          name: "Fried Onion Machine",
+          bahan: "bawang",
+          output: "bawang_goreng",
+          harga: 150000000,
+          sell: 40000000,
+        },
+        roaster: {
+          icon: "☕",
+          name: "Coffee Roaster",
+          bahan: "kopi",
+          output: "kopi_bubuk",
+          harga: 300000000,
+          sell: 100000000,
+        },
+        penyulingan: {
+          icon: "🛢️",
+          name: "CPO Refinery",
+          bahan: "sawit",
+          output: "minyak",
+          harga: 1000000000,
+          sell: 250000000,
+        },
+      };
 
-let userStatus = { crops:[], machines:[], balance:0 };
-let timers = {};
+      let userStatus = { crops: [], machines: [], balance: 0 };
+      let timers = {};
 
-function fmt(n){ return Math.floor(n).toLocaleString('id-ID'); }
-function fmtTime(ms){
-  if(ms<=0) return '✅ SIAP';
-  const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);
-  if(d>0) return `${d}h ${h%24}j`;
-  if(h>0) return `${h}j ${m%60}m`;
-  if(m>0) return `${m}m ${s%60}d`;
-  return `${s}d`;
-}
+      function fmt(n) {
+        return Math.floor(n).toLocaleString("id-ID");
+      }
+      function fmtTime(ms) {
+        if (ms <= 0) return "✅ SIAP";
+        const s = Math.floor(ms / 1000),
+          m = Math.floor(s / 60),
+          h = Math.floor(m / 60),
+          d = Math.floor(h / 24);
+        if (d > 0) return `${d}h ${h % 24}j`;
+        if (h > 0) return `${h}j ${m % 60}m`;
+        if (m > 0) return `${m}m ${s % 60}d`;
+        return `${s}d`;
+      }
 
-async function load() {
-  try {
-    const r = await api.get('/features/farming');
-    if (!r || !r.success) { showToast('error','Gagal memuat data farming'); return; }
-    userStatus = r;
-    const bal = r.balance != null ? r.balance : (r.bank != null ? r.bank : 0);
-    document.getElementById('top-balance').textContent = 'Rp'+fmt(bal);
-    document.getElementById('stat-balance').textContent = 'Rp'+fmt(bal);
-    document.getElementById('stat-crops').textContent = (r.crops||[]).length;
-    const machineList = r.machines || [];
-    document.getElementById('stat-machines').textContent = machineList.length;
-    const ready = (r.crops||[]).filter(c=>Date.now()>= (c.readyAt || 0)).length;
-    document.getElementById('stat-ready').textContent = ready;
-    renderLadang();
-    renderCropShop();
-    renderMachineShop();
-    renderProcGrid();
-  } catch(e){ showToast('error','Gagal memuat data farming'); }
-}
+      async function load() {
+        try {
+          const r = await api.get("/features/farming");
+          if (!r || !r.success) {
+            showToast("error", "Gagal memuat data farming");
+            return;
+          }
+          userStatus = r;
+          const bal =
+            r.balance != null ? r.balance : r.bank != null ? r.bank : 0;
+          document.getElementById("top-balance").textContent = "Rp" + fmt(bal);
+          document.getElementById("stat-balance").textContent = "Rp" + fmt(bal);
+          document.getElementById("stat-crops").textContent = (
+            r.crops || []
+          ).length;
+          const machineList = r.machines || [];
+          document.getElementById("stat-machines").textContent =
+            machineList.length;
+          const ready = (r.crops || []).filter(
+            (c) => Date.now() >= (c.readyAt || 0),
+          ).length;
+          document.getElementById("stat-ready").textContent = ready;
+          renderLadang();
+          renderCropShop();
+          renderMachineShop();
+          renderProcGrid();
+        } catch (e) {
+          showToast("error", "Gagal memuat data farming");
+        }
+      }
 
-function renderCropShop(){
-  const el = document.getElementById('crop-shop-grid');
-  el.innerHTML = Object.entries(CROPS_DATA).map(([key,c])=>`
+      function renderCropShop() {
+        const el = document.getElementById("crop-shop-grid");
+        el.innerHTML = Object.entries(CROPS_DATA)
+          .map(
+            ([key, c]) => `
     <div class="crop-card">
       <div class="crop-icon">${c.icon}</div>
       <div class="crop-name">${c.name}</div>
@@ -225,184 +603,262 @@ function renderCropShop(){
       </div>
       <div class="qty-row">
         <span style="font-size:12px;color:var(--text-secondary)">Qty:</span>
-        <input type="number" class="qty-input" id="qty-${key}" min="1" value="1">
+        <input type="number" class="qty-input" id="qty-${key}" min="1" max="10" value="1">
       </div>
       <button class="btn btn-primary btn-block btn-sm" onclick="tanam('${key}')">🌱 Tanam</button>
     </div>
-  `).join('');
-}
+  `,
+          )
+          .join("");
+      }
 
-function renderLadang(){
-  const el = document.getElementById('ladang-list');
-  const crops = userStatus.crops || [];
-  if(!crops.length){ el.innerHTML='<div class="alert alert-info">Ladang kosong. Mulai tanam!</div>'; return; }
-  el.innerHTML = crops.map((c,i)=>{
-    const left = c.readyAt - Date.now();
-    const isReady = left<=0;
-    const cd = CROPS_DATA[c.crop]||{};
-    return `
+      function renderLadang() {
+        const el = document.getElementById("ladang-list");
+        const crops = userStatus.crops || [];
+        if (!crops.length) {
+          el.innerHTML =
+            '<div class="alert alert-info">Ladang kosong. Mulai tanam!</div>';
+          return;
+        }
+        el.innerHTML = crops
+          .map((c, i) => {
+            const left = c.readyAt - Date.now();
+            const isReady = left <= 0;
+            const cd = CROPS_DATA[c.crop] || {};
+            return `
       <div class="harvest-item">
         <div style="display:flex;align-items:center;gap:12px">
-          <span style="font-size:28px">${cd.icon||'🌱'}</span>
+          <span style="font-size:28px">${cd.icon || "🌱"}</span>
           <div>
-            <div style="font-weight:700">${cd.name||c.crop} × ${c.qty}</div>
-            <div class="harvest-timer ${isReady?'ready':'waiting'}" id="timer-crop-${i}">
-              ${isReady?'✅ SIAP PANEN!':'⏳ '+fmtTime(left)}
+            <div style="font-weight:700">${cd.name || c.crop} × ${c.qty}</div>
+            <div class="harvest-timer ${isReady ? "ready" : "waiting"}" id="timer-crop-${i}">
+              ${isReady ? "✅ SIAP PANEN!" : "⏳ " + fmtTime(left)}
             </div>
           </div>
         </div>
-        ${isReady?`<button class="btn btn-primary btn-sm" onclick="panen()">🌾 Panen</button>`:`<span style="font-size:12px;color:var(--text-secondary)">${cd.label||''}</span>`}
+        ${isReady ? `<button class="btn btn-primary btn-sm" onclick="panen()">🌾 Panen</button>` : `<span style="font-size:12px;color:var(--text-secondary)">${cd.label || ""}</span>`}
       </div>`;
-  }).join('');
-  // Update timers
-  crops.forEach((c,i)=>{
-    if(c.readyAt > Date.now()){
-      clearInterval(timers['crop-'+i]);
-      timers['crop-'+i] = setInterval(()=>{
-        const el2 = document.getElementById(`timer-crop-${i}`);
-        if(!el2){ clearInterval(timers['crop-'+i]); return; }
-        const left2 = c.readyAt - Date.now();
-        if(left2<=0){ el2.textContent='✅ SIAP PANEN!'; el2.className='harvest-timer ready'; clearInterval(timers['crop-'+i]); }
-        else el2.textContent='⏳ '+fmtTime(left2);
-      },1000);
-    }
-  });
-}
+          })
+          .join("");
+        // Update timers
+        crops.forEach((c, i) => {
+          if (c.readyAt > Date.now()) {
+            clearInterval(timers["crop-" + i]);
+            timers["crop-" + i] = setInterval(() => {
+              const el2 = document.getElementById(`timer-crop-${i}`);
+              if (!el2) {
+                clearInterval(timers["crop-" + i]);
+                return;
+              }
+              const left2 = c.readyAt - Date.now();
+              if (left2 <= 0) {
+                el2.textContent = "✅ SIAP PANEN!";
+                el2.className = "harvest-timer ready";
+                clearInterval(timers["crop-" + i]);
+              } else el2.textContent = "⏳ " + fmtTime(left2);
+            }, 1000);
+          }
+        });
+      }
 
-function renderMachineShop(){
-  const el = document.getElementById('machine-shop-grid');
-  const owned = userStatus.machines || [];
-  const countMap = {};
-  owned.forEach(k=>{ countMap[k] = (countMap[k]||0)+1; });
-  el.innerHTML = Object.entries(MACHINES_DATA).map(([key,m])=>{
-    const count = countMap[key]||0;
-    return `
+      function renderMachineShop() {
+        const el = document.getElementById("machine-shop-grid");
+        const owned = userStatus.machines || [];
+        const countMap = {};
+        owned.forEach((k) => {
+          countMap[k] = (countMap[k] || 0) + 1;
+        });
+        el.innerHTML = Object.entries(MACHINES_DATA)
+          .map(([key, m]) => {
+            const count = countMap[key] || 0;
+            return `
       <div class="crop-card">
         <div class="crop-icon">${m.icon}</div>
         <div class="crop-name">${m.name}</div>
         <div class="crop-meta">
           📥 Bahan: <b>${m.bahan}</b><br>
-          📦 Output: <b>${m.output.replace(/_/g,' ')}</b><br>
+          📦 Output: <b>${m.output.replace(/_/g, " ")}</b><br>
           💵 Jual Output: <b>Rp${fmt(m.sell)}</b><br>
           💰 Harga: <b>Rp${fmt(m.harga)}</b>
         </div>
-        ${count>0
-          ? `<span class="badge-owned">✅ Dimiliki ${count}x</span><br><button class="btn btn-primary btn-block btn-sm" style="margin-top:8px" onclick="beliMesin('${key}')">➕ Beli lagi Rp${fmt(m.harga)}</button>`
-          : `<button class="btn btn-primary btn-block btn-sm" onclick="beliMesin('${key}')">🛒 Beli Rp${fmt(m.harga)}</button>`}
+        ${
+          count > 0
+            ? `<span class="badge-owned">✅ Dimiliki ${count}x</span><br><button class="btn btn-primary btn-block btn-sm" style="margin-top:8px" onclick="beliMesin('${key}')">➕ Beli lagi Rp${fmt(m.harga)}</button>`
+            : `<button class="btn btn-primary btn-block btn-sm" onclick="beliMesin('${key}')">🛒 Beli Rp${fmt(m.harga)}</button>`
+        }
       </div>`;
-  }).join('');
-}
+          })
+          .join("");
+      }
 
-function renderProcGrid(){
-  const el = document.getElementById('proc-grid');
-  const owned = userStatus.machines||[];
-  const processing = userStatus.processing || [];
-  const byProduct = {};
-  processing.forEach(p=>{
-    if(!byProduct[p.product]) byProduct[p.product]=[];
-    byProduct[p.product].push(p);
-  });
-  const procItems = {
-    beras:        { icon:'🍚', bahan:'padi',   mesin:'gilingan',     sell:6000000 },
-    popcorn:      { icon:'🍿', bahan:'jagung', mesin:'popcorn_maker',sell:18000000 },
-    bawang_goreng:{ icon:'🥘', bahan:'bawang', mesin:'penggorengan',  sell:40000000 },
-    kopi_bubuk:   { icon:'☕', bahan:'kopi',   mesin:'roaster',       sell:100000000 },
-    minyak:       { icon:'🛢️', bahan:'sawit',  mesin:'penyulingan',  sell:250000000 },
-  };
-  el.innerHTML = Object.entries(procItems).map(([key,p])=>{
-    const hasM = (userStatus.machines||[]).filter(m=>m===p.mesin).length >= 1;
-    const jobs = byProduct[key] || [];
-    let queueInfo = '';
-    if(jobs.length){
-      const totalQty = jobs.reduce((s,j)=>s+j.qty,0);
-      const nextMs = Math.min(...jobs.map(j=>Math.max(0,j.timeLeftMs||0)));
-      queueInfo = `
+      function renderProcGrid() {
+        const el = document.getElementById("proc-grid");
+        const owned = userStatus.machines || [];
+        const processing = userStatus.processing || [];
+        const byProduct = {};
+        processing.forEach((p) => {
+          if (!byProduct[p.product]) byProduct[p.product] = [];
+          byProduct[p.product].push(p);
+        });
+        const procItems = {
+          beras: {
+            icon: "🍚",
+            bahan: "padi",
+            mesin: "gilingan",
+            sell: 6000000,
+          },
+          popcorn: {
+            icon: "🍿",
+            bahan: "jagung",
+            mesin: "popcorn_maker",
+            sell: 18000000,
+          },
+          bawang_goreng: {
+            icon: "🥘",
+            bahan: "bawang",
+            mesin: "penggorengan",
+            sell: 40000000,
+          },
+          kopi_bubuk: {
+            icon: "☕",
+            bahan: "kopi",
+            mesin: "roaster",
+            sell: 100000000,
+          },
+          minyak: {
+            icon: "🛢️",
+            bahan: "sawit",
+            mesin: "penyulingan",
+            sell: 250000000,
+          },
+        };
+        el.innerHTML = Object.entries(procItems)
+          .map(([key, p]) => {
+            const hasM =
+              (userStatus.machines || []).filter((m) => m === p.mesin).length >=
+              1;
+            const jobs = byProduct[key] || [];
+            let queueInfo = "";
+            if (jobs.length) {
+              const totalQty = jobs.reduce((s, j) => s + j.qty, 0);
+              const nextMs = Math.min(
+                ...jobs.map((j) => Math.max(0, j.timeLeftMs || 0)),
+              );
+              queueInfo = `
         <div style="margin-top:6px;font-size:12px;color:var(--text-secondary)">
           🔄 Diproses: <b>${totalQty} unit</b><br>
           ⏳ Item berikutnya: <b>${fmtTime(nextMs)}</b>
         </div>`;
-    } else {
-      queueInfo = `<div style="margin-top:6px;font-size:12px;color:var(--text-secondary)">Tidak ada antrian.</div>`;
-    }
-    return `
+            } else {
+              queueInfo = `<div style="margin-top:6px;font-size:12px;color:var(--text-secondary)">Tidak ada antrian.</div>`;
+            }
+            return `
       <div class="crop-card">
         <div class="crop-icon">${p.icon}</div>
-        <div class="crop-name">${key.replace(/_/g,' ').toUpperCase()}</div>
+        <div class="crop-name">${key.replace(/_/g, " ").toUpperCase()}</div>
         <div class="crop-meta">
           📥 Dari: <b>${p.bahan}</b><br>
           ⚙️ Mesin: <b>${p.mesin}</b><br>
           💵 Jual: <b>Rp${fmt(p.sell)}/unit</b><br>
-          ${hasM?'<span class="badge-owned">✅ Mesin Tersedia</span>':'<span class="badge-req">❌ Butuh Mesin</span>'}
+          ${hasM ? '<span class="badge-owned">✅ Mesin Tersedia</span>' : '<span class="badge-req">❌ Butuh Mesin</span>'}
           ${queueInfo}
         </div>
-        ${hasM?`
+        ${
+          hasM
+            ? `
         <div class="qty-row"><span style="font-size:12px">Qty:</span>
         <input type="number" class="qty-input" id="qty-proc-${key}" min="1" value="1"></div>
         <button class="btn btn-primary btn-block btn-sm" onclick="proses('${key}')">🏭 Proses</button>
-        `:`<button class="btn btn-secondary btn-block btn-sm" onclick="switchTab('toko-mesin')">🛒 Beli Mesin Dulu</button>`}
+        `
+            : `<button class="btn btn-secondary btn-block btn-sm" onclick="switchTab('toko-mesin')">🛒 Beli Mesin Dulu</button>`
+        }
       </div>`;
-  }).join('');
-}
+          })
+          .join("");
+      }
 
-async function tanam(crop){
-  const qty = parseInt(document.getElementById(`qty-${crop}`).value)||1;
-  try{
-    const r = await api.post('/features/farming/tanam',{crop,qty});
-    showToast('success',r.message);
-    load();
-  }catch(e){ showToast('error',e.message||'Gagal tanam'); }
-}
+      async function tanam(crop) {
+        const qty = parseInt(document.getElementById(`qty-${crop}`).value) || 1;
+        try {
+          if (qty > 10) {
+            showToast("error", "Maksimal 10 per tanam");
+            return;
+          }
+          const r = await api.post("/features/farming/tanam", { crop, qty });
+          showToast("success", r.message);
+          load();
+        } catch (e) {
+          showToast("error", e.message || "Gagal tanam");
+        }
+      }
 
-async function panen(){
-  try{
-    const r = await api.post('/features/farming/panen',{});
-    showToast('success',r.message);
-    load();
-  }catch(e){ showToast('error',e.message||'Gagal panen'); }
-}
+      async function panen() {
+        try {
+          const r = await api.post("/features/farming/panen", {});
+          showToast("success", r.message);
+          load();
+        } catch (e) {
+          showToast("error", e.message || "Gagal panen");
+        }
+      }
 
-async function panenSemua(){ await panen(); }
+      async function panenSemua() {
+        await panen();
+      }
 
-async function beliMesin(machine){
-  if(!confirm(`Beli mesin ${machine}? Pastikan saldo cukup!`)) return;
-  try{
-    const r = await api.post('/features/farming/beli-mesin',{machine});
-    showToast('success',r.message);
-    load();
-  }catch(e){ showToast('error',e.message||'Gagal beli mesin'); }
-}
+      async function beliMesin(machine) {
+        if (!confirm(`Beli mesin ${machine}? Pastikan saldo cukup!`)) return;
+        try {
+          const r = await api.post("/features/farming/beli-mesin", { machine });
+          showToast("success", r.message);
+          load();
+        } catch (e) {
+          showToast("error", e.message || "Gagal beli mesin");
+        }
+      }
 
-async function proses(crop){
-  const qty = parseInt(document.getElementById(`qty-proc-${crop}`).value)||1;
-  try{
-    const r = await api.post('/features/farming/proses',{crop,qty});
-    showToast('success',r.message);
-    load();
-  }catch(e){ showToast('error',e.message||'Gagal proses'); }
-}
+      async function proses(crop) {
+        const qty =
+          parseInt(document.getElementById(`qty-proc-${crop}`).value) || 1;
+        try {
+          const r = await api.post("/features/farming/proses", { crop, qty });
+          showToast("success", r.message);
+          load();
+        } catch (e) {
+          showToast("error", e.message || "Gagal proses");
+        }
+      }
 
-function switchTab(tab){
-  ['ladang','toko-mesin','pabrik','pasar'].forEach(t=>{
-    document.getElementById(`tab-${t}`).classList.toggle('hidden',t!==tab);
-  });
-  document.querySelectorAll('.tab').forEach((el,i)=>{
-    el.classList.toggle('active',['ladang','toko-mesin','pabrik','pasar'][i]===tab);
-  });
-}
+      function switchTab(tab) {
+        ["ladang", "toko-mesin", "pabrik", "pasar"].forEach((t) => {
+          document
+            .getElementById(`tab-${t}`)
+            .classList.toggle("hidden", t !== tab);
+        });
+        document.querySelectorAll(".tab").forEach((el, i) => {
+          el.classList.toggle(
+            "active",
+            ["ladang", "toko-mesin", "pabrik", "pasar"][i] === tab,
+          );
+        });
+      }
 
-// Init sidebar
-const ME = getUser();
-if(ME){
-  document.getElementById('sidebar-username').textContent=ME.username;
-  document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();
-  document.getElementById('sidebar-role').textContent=ME.role||'user';
-  if(ME.role==='admin'||ME.role==='developer'){
-    document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('hidden'));
-  }
-}
+      // Init sidebar
+      const ME = getUser();
+      if (ME) {
+        document.getElementById("sidebar-username").textContent = ME.username;
+        document.getElementById("sidebar-avatar").textContent =
+          ME.username[0].toUpperCase();
+        document.getElementById("sidebar-role").textContent = ME.role || "user";
+        if (ME.role === "admin" || ME.role === "developer") {
+          document
+            .querySelectorAll(".admin-only")
+            .forEach((el) => el.classList.remove("hidden"));
+        }
+      }
 
-load();
-setInterval(load, 30000);
-</script>
-</body>
+      load();
+      setInterval(load, 30000);
+    </script>
+  </body>
 </html>

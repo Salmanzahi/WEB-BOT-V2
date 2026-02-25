@@ -1,21 +1,369 @@
-<!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AlgojoGacor</title>
-<link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css"></head>
-<body><div class="app-layout">
-<aside class="sidebar" id="sidebar"><div class="sidebar-logo"><span class="logo-icon">⚔️</span><div><div class="logo-text">AlgojoGacor</div></div></div>
-<nav class="sidebar-nav"><a class="nav-item" href="/dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a></nav>
-<div class="sidebar-footer"><div class="user-info"><div class="user-avatar" id="sidebar-avatar">?</div><div><div class="user-name" id="sidebar-username">Loading...</div></div></div>
-<button class="btn btn-secondary btn-block btn-sm" onclick="logout()">🚪 Logout</button></div></aside>
-<div class="main-content"><header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger" onclick="toggleSidebar()">☰</button>
-<span class="topbar-title" id="page-title">Fitur</span></div></header>
-<main class="content-area"><div class="card" style="text-align:center;padding:40px">
-<div style="font-size:60px;margin-bottom:16px">🚧</div>
-<h2>Halaman ini siap dikembangkan</h2>
-<p style="color:var(--text-secondary);margin:12px 0">Tambahkan logika di <code>controllers/features/</code> dan isi halaman HTML ini sesuai kebutuhan.</p>
-<a href="/dashboard.html" class="btn btn-primary">← Kembali ke Dashboard</a>
-</div></main></div></div>
-<div id="toast-container"></div><script src="/js/api.js"></script>
-<script>
-const ME=getUser(); if(ME){document.getElementById('sidebar-username').textContent=ME.username;document.getElementById('sidebar-avatar').textContent=ME.username[0].toUpperCase();}
-document.getElementById('page-title').textContent=document.title.split('—')[1]?.trim()||'Fitur';
-</script></body></html>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AlgojoGacor — Pekerjaan & Profesi</title>
+    <meta
+      name="description"
+      content="Pilih profesi, kerja untuk mendapat gaji, dan gunakan skill spesial untuk keuntungan ekstra"
+    />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <style>
+      /* ── Jobs Page Styles ──────────────────────────────────── */
+
+      /* Balance Bar */
+      .jobs-topbar-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-left: auto;
+      }
+      .jobs-topbar-info .balance-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: rgba(0, 212, 170, 0.1);
+        border: 1px solid rgba(0, 212, 170, 0.2);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent-green, #00d4aa);
+      }
+
+      /* Current Job Status Card */
+      .job-status-card {
+        border-radius: var(--radius, 12px);
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        position: relative;
+        overflow: hidden;
+      }
+      .job-status-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .job-status-card.unemployed::before {
+        background: linear-gradient(90deg, #e94560, #ff6b6b);
+      }
+      .job-status-card.employed::before {
+        background: linear-gradient(90deg, #00d4aa, #00b894);
+      }
+
+      .job-status-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .job-status-icon {
+        font-size: 48px;
+        line-height: 1;
+      }
+      .job-status-card.unemployed {
+        text-align: center;
+      }
+      .job-status-card.unemployed .job-status-icon {
+        font-size: 56px;
+        margin-bottom: 8px;
+      }
+      .job-status-info h3 {
+        margin: 0 0 4px;
+        font-size: 20px;
+        color: var(--text-primary);
+      }
+      .job-status-info p,
+      .job-desc {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin: 0;
+      }
+
+      /* Job Stats Row */
+      .job-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .job-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .job-stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .job-stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .job-stat-value.ready {
+        color: #00d4aa;
+      }
+      .job-stat-value.cooldown {
+        color: #e94560;
+      }
+
+      /* Job Actions */
+      .job-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .job-actions .btn {
+        flex: 1;
+        min-width: 120px;
+      }
+      .job-actions .btn-danger {
+        flex: 0;
+        min-width: auto;
+      }
+
+      /* Jobs List Grid */
+      .jobs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      /* Individual Job Card */
+      .job-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius, 12px);
+        overflow: hidden;
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: rgba(0, 212, 170, 0.3);
+      }
+      .job-card.current {
+        border-color: rgba(0, 212, 170, 0.5);
+        box-shadow: 0 0 0 1px rgba(0, 212, 170, 0.1);
+      }
+      .job-card.locked {
+        opacity: 0.7;
+      }
+      .job-card.locked:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--border);
+      }
+
+      .job-card-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 20px 20px 0;
+      }
+      .job-card-icon {
+        font-size: 40px;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .job-card-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .job-card-title h4 {
+        margin: 0;
+        font-size: 16px;
+        color: var(--text-primary);
+      }
+      .job-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .job-badge.current {
+        background: rgba(0, 212, 170, 0.15);
+        color: #00d4aa;
+      }
+      .job-badge.locked {
+        background: rgba(233, 69, 96, 0.12);
+        color: #e94560;
+      }
+
+      .job-card-body {
+        padding: 16px 20px;
+        flex: 1;
+      }
+      .job-card-desc {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin: 0 0 14px;
+        line-height: 1.5;
+      }
+
+      .job-card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .job-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 10px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+      }
+      .detail-label {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .detail-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .job-card-skill {
+        font-size: 12px;
+        color: var(--text-secondary);
+        padding: 10px 12px;
+        background: rgba(255, 215, 0, 0.06);
+        border: 1px solid rgba(255, 215, 0, 0.12);
+        border-radius: 8px;
+        line-height: 1.5;
+      }
+      .skill-label {
+        font-weight: 600;
+        color: #ffd700;
+      }
+
+      .job-card-footer {
+        padding: 0 20px 20px;
+      }
+
+      /* Section headers */
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .section-header .section-icon {
+        font-size: 24px;
+      }
+      .section-header h2 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--text-primary);
+      }
+      .section-header .section-sub {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-left: auto;
+      }
+
+      /* ── Responsive ─────────────────────────────────────── */
+      @media (max-width: 768px) {
+        .jobs-grid {
+          grid-template-columns: 1fr;
+        }
+        .job-stats-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .job-actions {
+          flex-direction: column;
+        }
+        .job-actions .btn {
+          flex: none;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- Sidebar (fetched from component) -->
+      <div id="sidebar-container"></div>
+
+      <!-- Main -->
+      <div class="main-content">
+        <header class="topbar">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button class="hamburger" onclick="toggleSidebar()">☰</button>
+            <span class="topbar-title">💼 Pekerjaan & Profesi</span>
+          </div>
+          <div class="jobs-topbar-info">
+            <div class="balance-chip">
+              💰 <span id="jobs-balance">Rp 0</span>
+            </div>
+          </div>
+        </header>
+
+        <main class="content-area">
+          <!-- Current Job Status -->
+          <div class="section-header">
+            <span class="section-icon">🆔</span>
+            <h2>Status Profesi</h2>
+          </div>
+          <div id="current-job">
+            <div class="job-status-card unemployed">
+              <div class="job-status-icon">⏳</div>
+              <div class="job-status-info">
+                <h3>Memuat data...</h3>
+                <p>Mengambil informasi profesi kamu</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Jobs -->
+          <div class="section-header">
+            <span class="section-icon">📋</span>
+            <h2>Bursa Kerja</h2>
+            <span class="section-sub"
+              >Upgrade karirmu sesuai modal saat ini!</span
+            >
+          </div>
+          <div class="jobs-grid" id="jobs-list">
+            <!-- Populated by JS -->
+            <div class="job-card" style="padding: 40px; text-align: center">
+              <div style="font-size: 40px; margin-bottom: 12px">⏳</div>
+              <p style="color: var(--text-muted)">Memuat lowongan...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script src="/js/jobsHandler.js"></script>
+    <script src="/component/sidebarFetch.js"></script>
+  </body>
+</html>
